@@ -1,6 +1,6 @@
 public with sharing class SN_TransactionLogService {
     /** Opens an observability transaction record using healthcare-safe metadata only. */
-    public static Id startTransaction(String correlationId, String idempotencyKey, String sourceSystem, String operationName, Id sourceRecordId, String requestTypeKey, String orgCode) {
+    public static Id startTransaction(String correlationId, String idempotencyKey, String sourceSystem, String operationName, Id sourceRecordId, String requestTypeKey, String orgCode, String businessUnit, String sourceObjectApiName, String sourceRecordLabel) {
         Integration_Transaction__c transactionRecord = new Integration_Transaction__c();
         transactionRecord.CorrelationId__c = correlationId;
         transactionRecord.IdempotencyKey__c = idempotencyKey;
@@ -9,6 +9,9 @@ public with sharing class SN_TransactionLogService {
         transactionRecord.SourceRecordId__c = sourceRecordId;
         transactionRecord.RequestType__c = requestTypeKey;
         transactionRecord.SalesforceOrgCode__c = orgCode;
+        transactionRecord.BusinessUnit__c = businessUnit;
+        transactionRecord.SourceObjectApiName__c = sourceObjectApiName;
+        transactionRecord.SourceRecordLabel__c = sourceRecordLabel;
         transactionRecord.Status__c = 'Queued';
         transactionRecord.StartedAt__c = System.now();
         transactionRecord.RetryCount__c = 0;
