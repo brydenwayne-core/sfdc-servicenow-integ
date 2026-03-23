@@ -27,10 +27,14 @@ public with sharing class SN_IdempotencyService {
 
     /** Creates or reserves an idempotency key before asynchronous processing begins. */
     public static Id registerTransaction(String idempotencyKey, String correlationId, String orgCode, String requestType) {
-        return reserveTransaction(idempotencyKey, correlationId, orgCode, requestType, null).transactionId;
+        return reserveTransaction(idempotencyKey, correlationId, orgCode, requestType, null, 'createIncident').transactionId;
     }
 
     public static ReservationResult reserveTransaction(String idempotencyKey, String correlationId, String orgCode, String requestType, Id sourceRecordId) {
+        return reserveTransaction(idempotencyKey, correlationId, orgCode, requestType, sourceRecordId, 'createIncident');
+    }
+
+    public static ReservationResult reserveTransaction(String idempotencyKey, String correlationId, String orgCode, String requestType, Id sourceRecordId, String operationName) {
         if (String.isBlank(idempotencyKey)) {
             throw new IdempotencyException('Idempotency key is required.');
         }
@@ -45,7 +49,7 @@ public with sharing class SN_IdempotencyService {
                 correlationId,
                 idempotencyKey,
                 'Salesforce',
-                'createIncident',
+                String.isBlank(operationName) ? 'createIncident' : operationName,
                 sourceRecordId,
                 requestType,
                 orgCode

@@ -21,6 +21,15 @@ public with sharing class SN_IntegrationOrchestrator {
         public String status;
     }
 
+    private class ExecutionReservation {
+        public Id transactionId;
+        public String idempotencyKey;
+        public Boolean retryExecution;
+        public String status;
+        public String targetRecordId;
+        public Boolean shouldProcess;
+    }
+
     public interface ICaseRepository { Case load(Id caseId); }
     public interface IFeatureToggleGateway { Boolean isEnabled(String featureKey, String orgKey); }
     public interface IConfigurationGateway {
@@ -38,9 +47,6 @@ public with sharing class SN_IntegrationOrchestrator {
     @TestVisible private static IRoutingGateway routingGateway = new DefaultRoutingGateway();
     @TestVisible private static IServiceNowGateway serviceNowGateway = new DefaultServiceNowGateway();
 
-    /**
-     * Legacy facade retained for backward-compatible entry points while the new layered architecture is adopted.
-     */
     public static Id submitCase(Id caseId, String requestTypeKey) {
         RequestContext context = new RequestContext();
         context.requestTypeKey = requestTypeKey;
@@ -58,20 +64,9 @@ public with sharing class SN_IntegrationOrchestrator {
 
         RequestContext effectiveContext = context == null ? new RequestContext() : context;
         String orgKey = resolveOrgKey(effectiveContext);
-        if (!featureToggleGateway.isEnabled(effectiveContext.featureKey, orgKey)) {
-            throw new OrchestrationException('Feature ' + effectiveContext.featureKey + ' is disabled for org ' + orgKey + '.');
-        }
+        ensureFeatureEnabled(effectiveContext, orgKey);
 
-        SN_ConfigService.OrgConfig orgConfig = configurationGateway.getOrgConfig(orgKey);
-        if (orgConfig == null) {
-            throw new OrchestrationException('No active org config found for org ' + orgKey + '.');
-        }
-
-        SN_ConfigService.RequestTypeConfig requestType = configurationGateway.getRequestType(orgKey, effectiveContext.requestTypeKey);
-        if (requestType == null) {
-            throw new OrchestrationException('No active request type found for org ' + orgKey + '.');
-        }
-
+        SN_ConfigService.RequestTypeConfig requestType = validateConfiguration(orgKey, effectiveContext.requestTypeKey);
         String businessContext = buildBusinessContext(orgKey, requestType.requestTypeKey, effectiveContext.businessContext);
         String idempotencyKey = SN_IdempotencyService.buildKey(caseRecord.Id, effectiveContext.operationName, businessContext);
         String correlationId = SN_ServiceNowClient.generateCorrelationId();
@@ -83,9 +78,86 @@ public with sharing class SN_IntegrationOrchestrator {
             caseRecord.Id
         );
 
+        ExecutionReservation execution = new ExecutionReservation();
+        execution.transactionId = reservation.transactionId;
+        execution.idempotencyKey = idempotencyKey;
+        execution.retryExecution = reservation.retryExecution;
+        execution.status = reservation.status;
+        execution.targetRecordId = reservation.targetRecordId;
+        execution.shouldProcess = reservation.shouldProcess;
+        return executeIncident(caseRecord, effectiveContext, requestType, correlationId, execution);
+    }
+
+    public static OrchestrationResult retryExistingTransaction(Id transactionId) {
+        if (transactionId == null) {
+            throw new OrchestrationException('Transaction Id is required.');
+        }
+        Integration_Transaction__c transactionRecord = [
+            SELECT Id, IdempotencyKey__c, SourceRecordId__c, SalesforceOrgCode__c, RequestType__c,
+                Status__c, RetryCount__c, TargetRecordId__c
+            FROM Integration_Transaction__c
+            WHERE Id = :transactionId
+            LIMIT 1
+        ];
+        if (transactionRecord.Status__c == 'Succeeded') {
+            OrchestrationResult skipped = new OrchestrationResult();
+            skipped.transactionId = transactionRecord.Id;
+            skipped.idempotencyKey = transactionRecord.IdempotencyKey__c;
+            skipped.status = transactionRecord.Status__c;
+            skipped.targetRecordId = transactionRecord.TargetRecordId__c;
+            skipped.skippedDuplicate = true;
+            return skipped;
+        }
+
+        Id caseId = String.isBlank(transactionRecord.SourceRecordId__c) ? null : Id.valueOf(transactionRecord.SourceRecordId__c);
+        Case caseRecord = caseRepository.load(caseId);
+        if (caseRecord == null) {
+            throw new OrchestrationException('Source Case not found for transaction ' + transactionId + '.');
+        }
+
+        RequestContext context = new RequestContext();
+        context.orgKey = transactionRecord.SalesforceOrgCode__c;
+        context.requestTypeKey = transactionRecord.RequestType__c;
+        ensureFeatureEnabled(context, context.orgKey);
+        SN_ConfigService.RequestTypeConfig requestType = validateConfiguration(context.orgKey, context.requestTypeKey);
+
+        Integer retryCount = transactionRecord.RetryCount__c == null ? 0 : Integer.valueOf(transactionRecord.RetryCount__c);
+        update new Integration_Transaction__c(
+            Id = transactionRecord.Id,
+            Status__c = 'Retrying',
+            RetryCount__c = retryCount + 1,
+            StartedAt__c = System.now(),
+            CompletedAt__c = null,
+            ErrorCategory__c = null,
+            ErrorCode__c = null,
+            ErrorSummary__c = null
+        );
+
+        ExecutionReservation execution = new ExecutionReservation();
+        execution.transactionId = transactionRecord.Id;
+        execution.idempotencyKey = transactionRecord.IdempotencyKey__c;
+        execution.retryExecution = true;
+        execution.status = 'Retrying';
+        execution.targetRecordId = transactionRecord.TargetRecordId__c;
+        execution.shouldProcess = true;
+        return executeIncident(caseRecord, context, requestType, SN_ServiceNowClient.generateCorrelationId(), execution);
+    }
+
+    @TestVisible
+    static void resetDependencies() {
+        caseRepository = new DefaultCaseRepository();
+        featureToggleGateway = new DefaultFeatureToggleGateway();
+        configurationGateway = new DefaultConfigurationGateway();
+        fieldMappingGateway = new DefaultFieldMappingGateway();
+        routingGateway = new DefaultRoutingGateway();
+        serviceNowGateway = new DefaultServiceNowGateway();
+    }
+
+    private static OrchestrationResult executeIncident(Case caseRecord, RequestContext context,
+        SN_ConfigService.RequestTypeConfig requestType, String correlationId, ExecutionReservation reservation) {
         OrchestrationResult result = new OrchestrationResult();
         result.transactionId = reservation.transactionId;
-        result.idempotencyKey = idempotencyKey;
+        result.idempotencyKey = reservation.idempotencyKey;
         result.retryExecution = reservation.retryExecution;
         result.status = reservation.status;
         result.targetRecordId = reservation.targetRecordId;
@@ -94,24 +166,26 @@ public with sharing class SN_IntegrationOrchestrator {
             return result;
         }
 
+        update new Integration_Transaction__c(Id = reservation.transactionId, Status__c = 'In Progress');
+
         try {
             SN_RoutingService.RoutingContext routingContext = new SN_RoutingService.RoutingContext();
-            routingContext.orgKey = orgKey;
+            routingContext.orgKey = context.orgKey;
             routingContext.requestTypeKey = requestType.requestTypeKey;
             routingContext.metadata.put('origin', caseRecord.Origin);
             routingContext.metadata.put('priority', caseRecord.Priority);
 
             SN_RoutingService.RoutingOutcome routingOutcome = routingGateway.resolve(routingContext);
-            Map<String, Object> payload = fieldMappingGateway.buildPayload(orgKey, requestType.requestTypeKey, caseRecord, null);
+            Map<String, Object> payload = fieldMappingGateway.buildPayload(context.orgKey, requestType.requestTypeKey, caseRecord, null);
             if (routingOutcome != null && routingOutcome.assignmentTarget != null) {
                 payload.put('assignment_group', routingOutcome.assignmentTarget.externalAssignmentId);
             }
             payload.put('u_salesforce_case_id', caseRecord.Id);
 
             SN_ServiceNowClient.IncidentCreateRequest request = new SN_ServiceNowClient.IncidentCreateRequest();
-            request.orgKey = orgKey;
+            request.orgKey = context.orgKey;
             request.correlationId = correlationId;
-            request.idempotencyKey = idempotencyKey;
+            request.idempotencyKey = reservation.idempotencyKey;
             request.payload = payload;
 
             SN_ServiceNowClient.ResponseEnvelope response = serviceNowGateway.createIncident(request);
@@ -125,7 +199,7 @@ public with sharing class SN_IntegrationOrchestrator {
 
             SN_TransactionLogService.markFailure(
                 reservation.transactionId,
-                String.valueOf(response.failureCategory),
+                mapFailureCategory(response.failureCategory),
                 response.failureCode,
                 'ServiceNow create incident request failed.',
                 response.retryable,
@@ -137,7 +211,7 @@ public with sharing class SN_IntegrationOrchestrator {
             if (!(ex instanceof OrchestrationException)) {
                 SN_TransactionLogService.markFailure(
                     reservation.transactionId,
-                    'UNHANDLED',
+                    'Unknown',
                     'UNHANDLED_EXCEPTION',
                     ex.getMessage(),
                     false,
@@ -148,14 +222,22 @@ public with sharing class SN_IntegrationOrchestrator {
         }
     }
 
-    @TestVisible
-    static void resetDependencies() {
-        caseRepository = new DefaultCaseRepository();
-        featureToggleGateway = new DefaultFeatureToggleGateway();
-        configurationGateway = new DefaultConfigurationGateway();
-        fieldMappingGateway = new DefaultFieldMappingGateway();
-        routingGateway = new DefaultRoutingGateway();
-        serviceNowGateway = new DefaultServiceNowGateway();
+    private static void ensureFeatureEnabled(RequestContext context, String orgKey) {
+        if (!featureToggleGateway.isEnabled(context.featureKey, orgKey)) {
+            throw new OrchestrationException('Feature ' + context.featureKey + ' is disabled for org ' + orgKey + '.');
+        }
+    }
+
+    private static SN_ConfigService.RequestTypeConfig validateConfiguration(String orgKey, String requestTypeKey) {
+        SN_ConfigService.OrgConfig orgConfig = configurationGateway.getOrgConfig(orgKey);
+        if (orgConfig == null) {
+            throw new OrchestrationException('No active org config found for org ' + orgKey + '.');
+        }
+        SN_ConfigService.RequestTypeConfig requestType = configurationGateway.getRequestType(orgKey, requestTypeKey);
+        if (requestType == null) {
+            throw new OrchestrationException('No active request type found for org ' + orgKey + '.');
+        }
+        return requestType;
     }
 
     private static String resolveOrgKey(RequestContext context) {
@@ -179,15 +261,31 @@ public with sharing class SN_IntegrationOrchestrator {
         }
         Map<String, Object> root = (Map<String, Object>) parsed;
         if (root.containsKey('result') && root.get('result') instanceof Map<String, Object>) {
-            Map<String, Object> result = (Map<String, Object>) root.get('result');
-            if (result.containsKey('sys_id')) {
-                return String.valueOf(result.get('sys_id'));
+            Map<String, Object> innerResult = (Map<String, Object>) root.get('result');
+            if (innerResult.containsKey('sys_id')) {
+                return String.valueOf(innerResult.get('sys_id'));
             }
-            if (result.containsKey('number')) {
-                return String.valueOf(result.get('number'));
+            if (innerResult.containsKey('number')) {
+                return String.valueOf(innerResult.get('number'));
             }
         }
         return null;
+    }
+
+    private static String mapFailureCategory(SN_ServiceNowClient.FailureCategory failureCategory) {
+        if (failureCategory == SN_ServiceNowClient.FailureCategory.CONFIGURATION) {
+            return 'Configuration';
+        }
+        if (failureCategory == SN_ServiceNowClient.FailureCategory.FUNCTIONAL) {
+            return 'Validation';
+        }
+        if (failureCategory == SN_ServiceNowClient.FailureCategory.AUTH) {
+            return 'Security';
+        }
+        if (failureCategory == SN_ServiceNowClient.FailureCategory.TECHNICAL) {
+            return 'Transport';
+        }
+        return 'Unknown';
     }
 
     private class DefaultCaseRepository implements ICaseRepository {
