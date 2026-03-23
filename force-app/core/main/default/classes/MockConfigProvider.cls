@@ -11,7 +11,7 @@ public with sharing class MockConfigProvider implements SN_IntegrationOrchestrat
     }
 
     public void apply() {
-        SN_ConfigService.setTestData(bundle.orgConfigs, bundle.requestTypes, bundle.routingRules, bundle.assignmentTargets);
+        SN_ConfigService.setExtendedTestData(bundle.orgConfigs, bundle.requestTypes, bundle.routingRules, bundle.assignmentTargets, bundle.incidentTemplates, bundle.endpointConfigs);
         SN_FieldMappingService.setTestData(bundle.fieldMappings);
         SN_FeatureToggleService.setTestData(bundle.featureToggles);
         SN_ServiceNowClient.setEndpointConfigTestData(bundle.endpointConfigs);

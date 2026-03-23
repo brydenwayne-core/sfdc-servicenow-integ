@@ -33,7 +33,7 @@ public with sharing class SN_IntegrationOrchestrator {
     }
 
     public interface ICaseRepository { Case load(Id caseId); }
-    public interface IFeatureToggleGateway { Boolean isEnabled(String featureKey, String orgKey); }
+    public interface IFeatureToggleGateway { Boolean isEnabled(String featureKey, String orgKey); Boolean isEnabled(String featureKey, String orgKey, String requestTypeKey); }
     public interface IConfigurationGateway {
         SN_ConfigService.OrgConfig getOrgConfig(String orgKey);
         SN_ConfigService.RequestTypeConfig getRequestType(String orgKey, String requestTypeKey);
@@ -172,7 +172,7 @@ public with sharing class SN_IntegrationOrchestrator {
             return result;
         }
 
-        update new Integration_Transaction__c(Id = reservation.transactionId, Status__c = 'In Progress');
+        SN_TransactionLogService.markInProgress(reservation.transactionId, 'Routing');
 
         try {
             SN_RoutingService.RoutingContext routingContext = new SN_RoutingService.RoutingContext();
@@ -218,6 +218,7 @@ public with sharing class SN_IntegrationOrchestrator {
             SN_TransactionLogService.markFailure(
                 reservation.transactionId,
                 mapFailureCategory(response.failureCategory),
+                response.failureCategory == null ? 'Unknown' : String.valueOf(response.failureCategory),
                 response.failureCode,
                 'ServiceNow create incident request failed.',
                 response.retryable,
@@ -237,9 +238,21 @@ public with sharing class SN_IntegrationOrchestrator {
             result.status = response.retryable == true ? 'Retrying' : 'Failed';
             throw new OrchestrationException('ServiceNow request failed with status ' + response.statusCode + '.');
         } catch (Exception ex) {
-            if (!(ex instanceof OrchestrationException)) {
+            if (ex instanceof SN_ExceptionTaxonomy.IntegrationException) {
+                SN_ExceptionTaxonomy.IntegrationException typed = (SN_ExceptionTaxonomy.IntegrationException) ex;
                 SN_TransactionLogService.markFailure(
                     reservation.transactionId,
+                    SN_ExceptionTaxonomy.toErrorCategory(typed.category),
+                    SN_ExceptionTaxonomy.toFailureClass(typed.category),
+                    typed.code,
+                    typed.getMessage(),
+                    typed.retryable,
+                    'orchestrationException'
+                );
+            } else if (!(ex instanceof OrchestrationException)) {
+                SN_TransactionLogService.markFailure(
+                    reservation.transactionId,
+                    'Unknown',
                     'Unknown',
                     'UNHANDLED_EXCEPTION',
                     ex.getMessage(),
@@ -252,20 +265,18 @@ public with sharing class SN_IntegrationOrchestrator {
     }
 
     private static void ensureFeatureEnabled(RequestContext context, String orgKey) {
-        if (!featureToggleGateway.isEnabled(context.featureKey, orgKey)) {
-            throw new OrchestrationException('Feature ' + context.featureKey + ' is disabled for org ' + orgKey + '.');
+        if (!featureToggleGateway.isEnabled(context.featureKey, orgKey, context.requestTypeKey)) {
+            throw new SN_ExceptionTaxonomy.ConfigurationException('FEATURE_DISABLED', 'Feature ' + context.featureKey + ' is disabled for org ' + orgKey + ' and request type ' + context.requestTypeKey + '.');
         }
     }
 
     private static SN_ConfigService.RequestTypeConfig validateConfiguration(String orgKey, String requestTypeKey) {
         SN_ConfigService.OrgConfig orgConfig = configurationGateway.getOrgConfig(orgKey);
-        if (orgConfig == null) {
-            throw new OrchestrationException('No active org config found for org ' + orgKey + '.');
-        }
+        if (orgConfig == null) { throw new SN_ExceptionTaxonomy.ConfigurationException('ORG_CONFIG_MISSING', 'No active org config found for org ' + orgKey + '.'); }
+        if (SN_ConfigService.getEndpointConfig(orgConfig.endpointConfigKey) == null) { throw new SN_ExceptionTaxonomy.ConfigurationException('ENDPOINT_CONFIG_MISSING', 'No active endpoint config found for org ' + orgKey + '.'); }
         SN_ConfigService.RequestTypeConfig requestType = configurationGateway.getRequestType(orgKey, requestTypeKey);
-        if (requestType == null) {
-            throw new OrchestrationException('No active request type found for org ' + orgKey + '.');
-        }
+        if (requestType == null) { throw new SN_ExceptionTaxonomy.ConfigurationException('REQUEST_TYPE_MISSING', 'No active request type found for org ' + orgKey + '.'); }
+        if (SN_ConfigService.getIncidentTemplate(orgKey, requestType.incidentTemplateKey) == null) { throw new SN_ExceptionTaxonomy.ConfigurationException('INCIDENT_TEMPLATE_MISSING', 'No active incident template found for org ' + orgKey + ' and request type ' + requestType.requestTypeKey + '.'); }
         return requestType;
     }
 
@@ -343,9 +354,8 @@ public with sharing class SN_IntegrationOrchestrator {
     }
 
     private class DefaultFeatureToggleGateway implements IFeatureToggleGateway {
-        public Boolean isEnabled(String featureKey, String orgKey) {
-            return SN_FeatureToggleService.isEnabled(featureKey, orgKey);
-        }
+        public Boolean isEnabled(String featureKey, String orgKey) { return SN_FeatureToggleService.isEnabled(featureKey, orgKey); }
+        public Boolean isEnabled(String featureKey, String orgKey, String requestTypeKey) { return SN_FeatureToggleService.isEnabled(featureKey, orgKey, requestTypeKey); }
     }
 
     private class DefaultConfigurationGateway implements IConfigurationGateway {

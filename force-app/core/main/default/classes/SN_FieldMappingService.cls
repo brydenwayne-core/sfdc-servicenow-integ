@@ -226,7 +226,7 @@ public with sharing class SN_FieldMappingService {
         }
     }
 
-    private static List<SN_Field_Mapping__mdt> getRecords() {
+    public static List<SN_Field_Mapping__mdt> getRecords() {
         if (Test.isRunningTest() && mappingOverrides != null) {
             return mappingOverrides;
         }
