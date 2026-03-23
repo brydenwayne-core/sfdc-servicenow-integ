@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Catalogs the ServiceNow assignment groups, users, and support queues available to routing rules.</description>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <label>ServiceNow Assignment Target</label>
+    <nameField><label>Assignment Target Name</label><type>Text</type></nameField>
+    <pluralLabel>ServiceNow Assignment Targets</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

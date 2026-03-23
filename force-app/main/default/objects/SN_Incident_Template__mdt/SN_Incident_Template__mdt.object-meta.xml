@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Holds reusable incident defaults such as category, impact, and urgency by request type.</description>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <label>ServiceNow Incident Template</label>
+    <nameField><label>Incident Template Name</label><type>Text</type></nameField>
+    <pluralLabel>ServiceNow Incident Templates</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Provides runtime feature controls to enable phased rollout and org-specific overrides without deployment changes.</description>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <label>ServiceNow Feature Toggle</label>
+    <nameField><label>Feature Toggle Name</label><type>Text</type></nameField>
+    <pluralLabel>ServiceNow Feature Toggles</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

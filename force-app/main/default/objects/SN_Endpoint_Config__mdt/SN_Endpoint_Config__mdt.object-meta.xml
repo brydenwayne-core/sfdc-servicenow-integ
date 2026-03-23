@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Maps org contexts to Named Credentials, path fragments, and timeout policies.</description>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <label>ServiceNow Endpoint Config</label>
+    <nameField><label>Endpoint Config Name</label><type>Text</type></nameField>
+    <pluralLabel>ServiceNow Endpoint Configs</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>
