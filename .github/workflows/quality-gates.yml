@@ -1,0 +1,73 @@
+name: Salesforce Quality Gates
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    env:
+      SF_TARGET_ORG: ${{ secrets.SF_TARGET_ORG }}
+      SF_DEVHUB_ALIAS: ${{ secrets.SF_DEVHUB_ALIAS }}
+      SF_WAIT_MINUTES: 45
+      SF_TEST_LEVEL: RunLocalTests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli
+
+      - name: Install Salesforce Code Analyzer plugin
+        run: sf plugins install @salesforce/sfdx-scanner
+
+      - name: Authenticate target org
+        if: ${{ secrets.SF_AUTH_URL != '' }}
+        run: |
+          printf '%s' "$SF_AUTH_URL" > ./auth-url.txt
+          sf org login sfdx-url --sfdx-url-file ./auth-url.txt --alias "$SF_TARGET_ORG" --set-default
+        env:
+          SF_AUTH_URL: ${{ secrets.SF_AUTH_URL }}
+
+      - name: Authenticate Dev Hub
+        if: ${{ secrets.SF_DEVHUB_AUTH_URL != '' && secrets.SF_DEVHUB_ALIAS != '' }}
+        run: |
+          printf '%s' "$SF_DEVHUB_AUTH_URL" > ./devhub-auth-url.txt
+          sf org login sfdx-url --sfdx-url-file ./devhub-auth-url.txt --alias "$SF_DEVHUB_ALIAS"
+        env:
+          SF_DEVHUB_AUTH_URL: ${{ secrets.SF_DEVHUB_AUTH_URL }}
+
+      - name: Static analysis
+        run: ./scripts/ci/static-analysis.sh
+
+      - name: Apex tests
+        if: ${{ env.SF_TARGET_ORG != '' }}
+        run: ./scripts/ci/apex-tests.sh
+
+      - name: Metadata validation
+        if: ${{ env.SF_TARGET_ORG != '' }}
+        run: ./scripts/ci/validate-metadata.sh
+
+      - name: Package checks
+        run: ./scripts/ci/package-checks.sh
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sf-quality-gate-reports
+          path: reports/

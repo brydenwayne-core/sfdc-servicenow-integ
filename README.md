@@ -76,6 +76,10 @@ sf project deploy start --source-dir force-app/sample-config
 sf project retrieve start --manifest manifests/package.xml
 ```
 
+## CI/CD quality gates
+
+Repo-native CI/CD helpers now live in `scripts/ci/` with a matching GitHub Actions example in `.github/workflows/quality-gates.yml`. The gates cover static analysis, Apex tests, metadata validation, and package readiness checks without hardcoding environment-specific org names. See `docs/runbooks/ci-cd-quality-gates.md` for setup and usage details.
+
 ## Codex repository instruction
 
 Use this as the baseline instruction for Codex in this repo:
