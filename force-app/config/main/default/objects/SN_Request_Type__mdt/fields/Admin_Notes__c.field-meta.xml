@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Admin-facing guidance, caveats, or ownership notes for safely maintaining this record.</description>
+    <fullName>Admin_Notes__c</fullName>
+    <label>Admin Notes</label>
+    <length>32768</length>
+    <required>false</required>
+    <type>LongTextArea</type>
+    <visibleLines>4</visibleLines>
+</CustomField>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Admin sort order for request types when multiple active options exist for the same org; lower numbers indicate higher precedence.</description>
+    <fullName>Priority__c</fullName>
+    <label>Priority</label>
+    <precision>4</precision>
+    <required>false</required>
+    <scale>0</scale>
+    <type>Number</type>
+</CustomField>

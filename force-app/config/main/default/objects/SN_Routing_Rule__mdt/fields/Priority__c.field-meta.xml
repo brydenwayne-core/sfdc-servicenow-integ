@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Evaluation order so the first matching active rule can win deterministically; use lower numbers for specific rules and higher numbers for fallback rules.</description>
+    <fullName>Priority__c</fullName>
+    <label>Evaluation Priority</label>
+    <precision>3</precision>
+    <required>false</required>
+    <scale>0</scale>
+    <type>Number</type>
+</CustomField>

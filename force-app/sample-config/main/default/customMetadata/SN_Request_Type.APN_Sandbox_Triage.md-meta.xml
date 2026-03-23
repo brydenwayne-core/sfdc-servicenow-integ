@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"><label>APN Sandbox Triage</label><protected>false</protected>
-<values><field>Org_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">APN_SANDBOX</value></values>
-<values><field>Request_Type_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">INCIDENT_APN_TRIAGE</value></values>
-<values><field>Source_Object__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">Case</value></values>
-<values><field>Operation_Mode__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">Create Incident</value></values>
-<values><field>Incident_Template_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">APN_SANDBOX_TEMPLATE</value></values>
-<values><field>Routing_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">APN_TRIAGE</value></values>
-<values><field>Is_Active__c</field><value xsi:type="xsd:boolean" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">true</value></values></CustomMetadata>
+<?xml version='1.0' encoding='UTF-8'?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><label>APN Sandbox Triage</label><protected>false</protected>
+<values><field>Org_Key__c</field><value xsi:type="xsd:string">APN_SANDBOX</value></values>
+<values><field>Request_Type_Key__c</field><value xsi:type="xsd:string">INCIDENT_APN_TRIAGE</value></values>
+<values><field>Source_Object__c</field><value xsi:type="xsd:string">Case</value></values>
+<values><field>Operation_Mode__c</field><value xsi:type="xsd:string">Create Incident</value></values>
+<values><field>Incident_Template_Key__c</field><value xsi:type="xsd:string">APN_SANDBOX_TEMPLATE</value></values>
+<values><field>Routing_Key__c</field><value xsi:type="xsd:string">APN_TRIAGE</value></values>
+<values><field>Is_Active__c</field><value xsi:type="xsd:boolean">true</value></values><values><field>Lifecycle_Status__c</field><value xsi:type="xsd:string">Active</value></values><values><field>Effective_Start_Date__c</field><value xsi:type="xsd:date">2026-01-01</value></values><values><field>Documentation_URL__c</field><value xsi:type="xsd:string">docs/admin/configuring-salesforce-servicenow-integration.md</value></values><values><field>Admin_Notes__c</field><value xsi:type="xsd:string">Sample request type showing reusable routing/template references.</value></values><values><field>Priority__c</field><value xsi:type="xsd:double">100</value></values></CustomMetadata>

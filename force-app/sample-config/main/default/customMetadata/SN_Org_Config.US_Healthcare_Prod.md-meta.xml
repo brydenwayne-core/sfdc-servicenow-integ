@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata">
+<?xml version='1.0' encoding='UTF-8'?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <label>US Healthcare Prod</label>
     <protected>false</protected>
-    <values><field>Org_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">US_HEALTHCARE_PROD</value></values>
-    <values><field>Salesforce_Org_Id__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">00DUS0000000001</value></values>
-    <values><field>Business_Unit__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">Healthcare East</value></values>
-    <values><field>Environment__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">PROD</value></values>
-    <values><field>Is_Active__c</field><value xsi:type="xsd:boolean" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">true</value></values>
-    <values><field>Default_Request_Type__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">INCIDENT_STANDARD</value></values>
-    <values><field>Endpoint_Config_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">SNOW_US_PROD</value></values>
-</CustomMetadata>
+    <values><field>Org_Key__c</field><value xsi:type="xsd:string">US_HEALTHCARE_PROD</value></values>
+    <values><field>Salesforce_Org_Id__c</field><value xsi:type="xsd:string">00DUS0000000001</value></values>
+    <values><field>Business_Unit__c</field><value xsi:type="xsd:string">Healthcare East</value></values>
+    <values><field>Environment__c</field><value xsi:type="xsd:string">PROD</value></values>
+    <values><field>Is_Active__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Default_Request_Type__c</field><value xsi:type="xsd:string">INCIDENT_STANDARD</value></values>
+    <values><field>Endpoint_Config_Key__c</field><value xsi:type="xsd:string">SNOW_US_PROD</value></values>
+<values><field>Lifecycle_Status__c</field><value xsi:type="xsd:string">Active</value></values><values><field>Effective_Start_Date__c</field><value xsi:type="xsd:date">2026-01-01</value></values><values><field>Documentation_URL__c</field><value xsi:type="xsd:string">docs/admin/configuring-salesforce-servicenow-integration.md</value></values><values><field>Admin_Notes__c</field><value xsi:type="xsd:string">Sample org configuration record for rollout planning and sandbox validation.</value></values><values><field>Owner_Team__c</field><value xsi:type="xsd:string">Integration Platform Team</value></values></CustomMetadata>
