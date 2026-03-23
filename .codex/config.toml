@@ -1,0 +1,20 @@
+# Codex repository guidance for sfdc-servicenow-integ
+# Treat this project as an enterprise healthcare integration framework.
+
+[project]
+name = "sfdc-servicenow-integ"
+domain = "enterprise healthcare integration"
+
+[instructions]
+summary = "Read this Salesforce DX project and treat it as an enterprise healthcare integration framework. All code must be metadata-driven, modular, packageable, and suitable for multi-org deployment. Do not hardcode business rules, routing, field mappings, or credentials. Generate secure Apex, Custom Metadata Types, tests, and documentation. Assume ServiceNow field mappings and process rules will evolve over time."
+rules = [
+  "Treat this repository as an enterprise healthcare system with governance, auditability, and least-privilege design.",
+  "Never hardcode credentials, secrets, endpoints, tenant identifiers, or environment-specific values.",
+  "Prefer metadata-driven configuration for routing, field mappings, orchestration rules, and feature toggles.",
+  "Avoid logging sensitive payloads, PHI, PII, secrets, or full request and response bodies.",
+  "Keep orchestration separate from transport, transformation, persistence, and observability concerns.",
+  "Generate unit tests with every Apex class, trigger, integration component, and metadata-driven service.",
+  "Do not make destructive changes without explicit user instruction.",
+  "Design for multiple Salesforce orgs, packageability, and future expansion to additional ITSM or healthcare workflows.",
+  "Prefer secure Apex patterns, explicit sharing decisions, and dependency boundaries that support auditing and reuse."
+]
