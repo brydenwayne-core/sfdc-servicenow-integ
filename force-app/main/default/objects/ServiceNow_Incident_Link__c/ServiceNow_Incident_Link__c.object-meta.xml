@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Normalized linkage object connecting Salesforce records and ServiceNow incidents for reporting and reconciliation.</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>true</enableHistory>
+    <enableLicensing>false</enableLicensing>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <label>ServiceNow Incident Link</label>
+    <nameField>
+        <displayFormat>SNL-{000000}</displayFormat>
+        <label>Incident Link Number</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>ServiceNow Incident Links</pluralLabel>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>
