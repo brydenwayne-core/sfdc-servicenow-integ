@@ -5,10 +5,12 @@ public with sharing class SN_IntegrationOrchestrator {
         public String businessContext;
         public String featureKey;
         public String operationName;
+        public String sourceObjectApiName;
 
         public RequestContext() {
             operationName = 'createIncident';
             featureKey = 'CASE_TO_INCIDENT_SYNC';
+            sourceObjectApiName = 'Case';
         }
     }
 
@@ -67,6 +69,7 @@ public with sharing class SN_IntegrationOrchestrator {
         ensureFeatureEnabled(effectiveContext, orgKey);
 
         SN_ConfigService.RequestTypeConfig requestType = validateConfiguration(orgKey, effectiveContext.requestTypeKey);
+        SN_ConfigService.OrgConfig orgConfig = configurationGateway.getOrgConfig(orgKey);
         String businessContext = buildBusinessContext(orgKey, requestType.requestTypeKey, effectiveContext.businessContext);
         String idempotencyKey = SN_IdempotencyService.buildKey(caseRecord.Id, effectiveContext.operationName, businessContext);
         String correlationId = SN_ServiceNowClient.generateCorrelationId();
@@ -77,6 +80,7 @@ public with sharing class SN_IntegrationOrchestrator {
             requestType.requestTypeKey,
             caseRecord.Id
         );
+        seedTransactionReportingContext(reservation.transactionId, orgConfig, effectiveContext.sourceObjectApiName, caseRecord);
 
         ExecutionReservation execution = new ExecutionReservation();
         execution.transactionId = reservation.transactionId;
@@ -85,7 +89,7 @@ public with sharing class SN_IntegrationOrchestrator {
         execution.status = reservation.status;
         execution.targetRecordId = reservation.targetRecordId;
         execution.shouldProcess = reservation.shouldProcess;
-        return executeIncident(caseRecord, effectiveContext, requestType, correlationId, execution);
+        return executeIncident(caseRecord, effectiveContext, requestType, orgConfig, correlationId, execution);
     }
 
     public static OrchestrationResult retryExistingTransaction(Id transactionId) {
@@ -119,6 +123,7 @@ public with sharing class SN_IntegrationOrchestrator {
         context.orgKey = transactionRecord.SalesforceOrgCode__c;
         context.requestTypeKey = transactionRecord.RequestType__c;
         ensureFeatureEnabled(context, context.orgKey);
+        SN_ConfigService.OrgConfig orgConfig = configurationGateway.getOrgConfig(context.orgKey);
         SN_ConfigService.RequestTypeConfig requestType = validateConfiguration(context.orgKey, context.requestTypeKey);
 
         Integer retryCount = transactionRecord.RetryCount__c == null ? 0 : Integer.valueOf(transactionRecord.RetryCount__c);
@@ -140,7 +145,8 @@ public with sharing class SN_IntegrationOrchestrator {
         execution.status = 'Retrying';
         execution.targetRecordId = transactionRecord.TargetRecordId__c;
         execution.shouldProcess = true;
-        return executeIncident(caseRecord, context, requestType, SN_ServiceNowClient.generateCorrelationId(), execution);
+        seedTransactionReportingContext(transactionRecord.Id, orgConfig, context.sourceObjectApiName, caseRecord);
+        return executeIncident(caseRecord, context, requestType, orgConfig, SN_ServiceNowClient.generateCorrelationId(), execution);
     }
 
     @TestVisible
@@ -154,7 +160,7 @@ public with sharing class SN_IntegrationOrchestrator {
     }
 
     private static OrchestrationResult executeIncident(Case caseRecord, RequestContext context,
-        SN_ConfigService.RequestTypeConfig requestType, String correlationId, ExecutionReservation reservation) {
+        SN_ConfigService.RequestTypeConfig requestType, SN_ConfigService.OrgConfig orgConfig, String correlationId, ExecutionReservation reservation) {
         OrchestrationResult result = new OrchestrationResult();
         result.transactionId = reservation.transactionId;
         result.idempotencyKey = reservation.idempotencyKey;
@@ -190,8 +196,20 @@ public with sharing class SN_IntegrationOrchestrator {
 
             SN_ServiceNowClient.ResponseEnvelope response = serviceNowGateway.createIncident(request);
             if (response.success == true) {
-                String targetRecordId = extractTargetRecordId(response.responseBody);
+                Map<String, String> incidentReference = extractIncidentReference(response.responseBody);
+                String targetRecordId = incidentReference.get('sys_id');
                 SN_TransactionLogService.markSuccess(reservation.transactionId, targetRecordId, response.safeSummary);
+                SN_IncidentLinkService.upsertLink(
+                    SN_IncidentLinkService.buildCaseIncidentContext(
+                        reservation.transactionId,
+                        caseRecord,
+                        context.orgKey,
+                        orgConfig == null ? null : orgConfig.businessUnit,
+                        incidentReference.get('sys_id'),
+                        incidentReference.get('number'),
+                        'Active'
+                    )
+                );
                 result.targetRecordId = targetRecordId;
                 result.status = 'Succeeded';
                 return result;
@@ -204,6 +222,17 @@ public with sharing class SN_IntegrationOrchestrator {
                 'ServiceNow create incident request failed.',
                 response.retryable,
                 response.safeSummary
+            );
+            SN_IncidentLinkService.upsertLink(
+                SN_IncidentLinkService.buildCaseIncidentContext(
+                    reservation.transactionId,
+                    caseRecord,
+                    context.orgKey,
+                    orgConfig == null ? null : orgConfig.businessUnit,
+                    null,
+                    null,
+                    'Failed'
+                )
             );
             result.status = response.retryable == true ? 'Retrying' : 'Failed';
             throw new OrchestrationException('ServiceNow request failed with status ' + response.statusCode + '.');
@@ -251,25 +280,38 @@ public with sharing class SN_IntegrationOrchestrator {
         return String.join(new List<String>{ orgKey, requestTypeKey, businessContext }, '|');
     }
 
-    private static String extractTargetRecordId(String responseBody) {
+    private static Map<String, String> extractIncidentReference(String responseBody) {
+        Map<String, String> incidentReference = new Map<String, String>();
         if (String.isBlank(responseBody)) {
-            return null;
+            return incidentReference;
         }
         Object parsed = JSON.deserializeUntyped(responseBody);
         if (!(parsed instanceof Map<String, Object>)) {
-            return null;
+            return incidentReference;
         }
         Map<String, Object> root = (Map<String, Object>) parsed;
         if (root.containsKey('result') && root.get('result') instanceof Map<String, Object>) {
             Map<String, Object> innerResult = (Map<String, Object>) root.get('result');
             if (innerResult.containsKey('sys_id')) {
-                return String.valueOf(innerResult.get('sys_id'));
+                incidentReference.put('sys_id', String.valueOf(innerResult.get('sys_id')));
             }
             if (innerResult.containsKey('number')) {
-                return String.valueOf(innerResult.get('number'));
+                incidentReference.put('number', String.valueOf(innerResult.get('number')));
             }
         }
-        return null;
+        return incidentReference;
+    }
+
+    private static void seedTransactionReportingContext(Id transactionId, SN_ConfigService.OrgConfig orgConfig, String sourceObjectApiName, Case caseRecord) {
+        if (transactionId == null) {
+            return;
+        }
+        update new Integration_Transaction__c(
+            Id = transactionId,
+            BusinessUnit__c = orgConfig == null ? null : orgConfig.businessUnit,
+            SourceObjectApiName__c = sourceObjectApiName,
+            SourceRecordLabel__c = caseRecord == null ? null : caseRecord.CaseNumber
+        );
     }
 
     private static String mapFailureCategory(SN_ServiceNowClient.FailureCategory failureCategory) {
@@ -291,7 +333,7 @@ public with sharing class SN_IntegrationOrchestrator {
     private class DefaultCaseRepository implements ICaseRepository {
         public Case load(Id caseId) {
             List<Case> records = [
-                SELECT Id, Subject, Description, Origin, Priority, Type
+                SELECT Id, CaseNumber, Subject, Description, Origin, Priority, Type
                 FROM Case
                 WHERE Id = :caseId
                 LIMIT 1

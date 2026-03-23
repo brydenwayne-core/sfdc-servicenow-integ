@@ -52,7 +52,10 @@ public with sharing class SN_IdempotencyService {
                 String.isBlank(operationName) ? 'createIncident' : operationName,
                 sourceRecordId,
                 requestType,
-                orgCode
+                orgCode,
+                null,
+                null,
+                null
             );
             ReservationResult created = new ReservationResult();
             created.transactionId = transactionId;

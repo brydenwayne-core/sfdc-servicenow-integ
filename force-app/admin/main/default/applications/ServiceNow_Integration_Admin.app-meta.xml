@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Operational console for ServiceNow integration administration, centralized incident link visibility, and support reporting.</description>
+    <formFactors>Large</formFactors>
+    <label>ServiceNow Integration Admin</label>
+    <navType>Standard</navType>
+    <tabs>standard-home</tabs>
+    <tabs>Integration_Transaction__c</tabs>
+    <tabs>ServiceNow_Incident_Link__c</tabs>
+    <tabs>SN_Integration_Error__c</tabs>
+    <tabs>SN_Integration_Run__c</tabs>
+    <uiType>Lightning</uiType>
+    <utilityBar>standard-Service</utilityBar>
+</CustomApplication>

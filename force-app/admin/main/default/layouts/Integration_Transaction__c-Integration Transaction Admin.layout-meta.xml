@@ -15,6 +15,7 @@
             <layoutItems><behavior>Edit</behavior><field>CorrelationId__c</field></layoutItems>
             <layoutItems><behavior>Edit</behavior><field>IdempotencyKey__c</field></layoutItems>
             <layoutItems><behavior>Edit</behavior><field>SalesforceOrgCode__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field>BusinessUnit__c</field></layoutItems>
             <layoutItems><behavior>Edit</behavior><field>RequestType__c</field></layoutItems>
         </layoutColumns>
         <style>TwoColumnsTopToBottom</style>
@@ -27,7 +28,9 @@
         <layoutColumns>
             <layoutItems><behavior>Edit</behavior><field>SourceSystem__c</field></layoutItems>
             <layoutItems><behavior>Edit</behavior><field>Operation__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field>SourceObjectApiName__c</field></layoutItems>
             <layoutItems><behavior>Edit</behavior><field>SourceRecordId__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field>SourceRecordLabel__c</field></layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems><behavior>Edit</behavior><field>TargetRecordId__c</field></layoutItems>
@@ -72,6 +75,8 @@
     </relatedLists>
     <relatedLists>
         <fields>Name</fields>
+        <fields>Salesforce_Org_Code__c</fields>
+        <fields>Source_Record_Label__c</fields>
         <fields>ServiceNow_Incident_Number__c</fields>
         <fields>Link_Status__c</fields>
         <relatedList>ServiceNowIncidentLinks</relatedList>

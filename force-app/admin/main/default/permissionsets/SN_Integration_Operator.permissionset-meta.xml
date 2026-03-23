@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <applicationVisibilities><application>ServiceNow_Integration_Admin</application><default>false</default><visible>true</visible></applicationVisibilities>
     <classAccesses><apexClass>SN_IntegrationOrchestrator</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>SN_ServiceNowClient</apexClass><enabled>true</enabled></classAccesses>
     <hasActivationRequired>false</hasActivationRequired>
     <label>ServiceNow Integration Operator</label>
+    <objectPermissions><allowCreate>false</allowCreate><allowDelete>false</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>Integration_Transaction__c</object><viewAllRecords>true</viewAllRecords></objectPermissions>
+    <objectPermissions><allowCreate>false</allowCreate><allowDelete>false</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>ServiceNow_Incident_Link__c</object><viewAllRecords>true</viewAllRecords></objectPermissions>
     <objectPermissions><allowCreate>false</allowCreate><allowDelete>false</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>SN_Integration_Error__c</object><viewAllRecords>true</viewAllRecords></objectPermissions>
     <objectPermissions><allowCreate>true</allowCreate><allowDelete>false</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>SN_Integration_Run__c</object><viewAllRecords>true</viewAllRecords></objectPermissions>
+    <tabSettings><tab>Integration_Transaction__c</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>ServiceNow_Incident_Link__c</tab><visibility>Visible</visibility></tabSettings>
     <tabSettings><tab>SN_Integration_Error__c</tab><visibility>Visible</visibility></tabSettings>
     <tabSettings><tab>SN_Integration_Run__c</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>
