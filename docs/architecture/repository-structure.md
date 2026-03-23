@@ -4,7 +4,10 @@ This repository is organized to support a metadata-driven Salesforce-to-ServiceN
 
 ## Top-level layout
 
-- `force-app/main/default/`: primary Salesforce metadata source for Apex, Custom Metadata Types, flows, permission sets, and other packageable components.
+- `force-app/core/main/default/`: runtime Apex, async jobs, runtime objects, and integration observability assets.
+- `force-app/config/main/default/`: configuration schema metadata and secure connection assets used by the runtime.
+- `force-app/admin/main/default/`: operational/admin app metadata such as tabs, layouts, and permission sets.
+- `force-app/sample-config/main/default/`: sample custom metadata records used as rollout examples, not production truth.
 - `docs/adr/`: architecture decision records for long-lived technical decisions.
 - `docs/architecture/`: system design documentation, integration patterns, and module boundaries.
 - `docs/runbooks/`: operational procedures for deployment, incident handling, support, and recovery.
@@ -21,3 +24,4 @@ The structure is optimized for enterprise healthcare governance:
 2. Separate architecture rationale from operational runbooks.
 3. Capture repo-specific AI coding rules close to the codebase.
 4. Preserve room for future metadata-driven modules and automation scripts.
+5. Support clearer unlocked-package layering between runtime, config schema, admin UX, and sample org data.

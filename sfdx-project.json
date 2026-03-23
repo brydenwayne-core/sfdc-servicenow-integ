@@ -3,7 +3,19 @@
     {
       "path": "force-app/core",
       "default": true,
-      "package": "SN_Integration_Core",
+      "package": "SN_Integration_Core_Runtime",
+      "versionName": "ver 0.1",
+      "versionNumber": "0.1.0.NEXT",
+      "dependencies": [
+        {
+          "package": "SN_Integration_Config_Base",
+          "versionNumber": "0.1.0.LATEST"
+        }
+      ]
+    },
+    {
+      "path": "force-app/config",
+      "package": "SN_Integration_Config_Base",
       "versionName": "ver 0.1",
       "versionNumber": "0.1.0.NEXT"
     },
@@ -14,7 +26,11 @@
       "versionNumber": "0.1.0.NEXT",
       "dependencies": [
         {
-          "package": "SN_Integration_Core",
+          "package": "SN_Integration_Config_Base",
+          "versionNumber": "0.1.0.LATEST"
+        },
+        {
+          "package": "SN_Integration_Core_Runtime",
           "versionNumber": "0.1.0.LATEST"
         }
       ]
@@ -26,7 +42,7 @@
       "versionNumber": "0.1.0.NEXT",
       "dependencies": [
         {
-          "package": "SN_Integration_Core",
+          "package": "SN_Integration_Config_Base",
           "versionNumber": "0.1.0.LATEST"
         }
       ]

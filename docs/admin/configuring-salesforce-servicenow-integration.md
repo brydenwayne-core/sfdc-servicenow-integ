@@ -19,6 +19,17 @@ Core configuration assets:
 - `SN_Endpoint_Config__mdt`: points the org configuration to the correct Named Credential and ServiceNow API base path.
 - Named Credential and External Credential metadata: provide secure transport/authentication.
 
+### Shared admin-maintenance fields
+
+Several configuration types now include governance fields that should be maintained alongside the business settings:
+
+- **Lifecycle Status**: use `Draft`, `Active`, `Deprecated`, or `Retired` to signal rollout intent.
+- **Effective Start / End Date**: use these to stage future changes without deleting current records.
+- **Admin Notes**: document guardrails, approvers, or migration caveats close to the metadata.
+- **Documentation URL**: link the supporting runbook or implementation note for future maintainers.
+
+Treat these fields as part of the operational contract, not optional commentary.
+
 ## Before You Start
 
 Before changing configuration, confirm the following:
@@ -43,7 +54,7 @@ Recommended values to confirm:
 - timeout,
 - active status.
 
-Use an existing pattern such as the sample configuration records under `force-app/sample-config/main/default/customMetadata/` as a baseline.
+Use an existing pattern such as the sample configuration records under `force-app/sample-config/main/default/customMetadata/` as a baseline, while keeping the Custom Metadata Type definitions themselves in `force-app/config/main/default/objects/`.
 
 ### Step 2: Add the org metadata record
 
@@ -69,7 +80,8 @@ Minimum values:
 - operation mode,
 - incident template key,
 - routing key,
-- active state.
+- active state,
+- and priority when multiple request types may coexist.
 
 ### Step 4: Add assignment targets
 
@@ -93,12 +105,13 @@ At minimum, define:
 - org key,
 - request type key,
 - assignment target key,
-- priority,
-- default/fallback flag,
+- evaluation priority,
+- fallback flag,
 - active state,
-- JSON `Match_Criteria__c` payload.
+- JSON or human-readable `Match_Criteria__c` payload,
+- and lifecycle/effective-date fields when the rule is time-bound.
 
-Every active request type should have a safe default route unless the business process intentionally blocks submission.
+Every active request type should have a safe fallback route unless the business process intentionally blocks submission. Prefer lower priority values for specific routes and reserve higher values for fallback rules.
 
 ### Step 6: Add field mappings
 
@@ -173,9 +186,10 @@ When changing mappings:
 
 1. identify the request type and org scope,
 2. confirm the ServiceNow target field API name,
-3. deploy the metadata change,
-4. submit a validation Case,
-5. review the transaction result and resulting ServiceNow incident.
+3. choose an execution order that leaves room for future insertions,
+4. deploy the metadata change,
+5. submit a validation Case,
+6. review the transaction result and resulting ServiceNow incident.
 
 ## How to Update Routing Rules
 
@@ -286,3 +300,7 @@ Admins should maintain:
 - field ownership/mapping matrix,
 - feature toggle inventory,
 - support contact list and escalation path.
+
+## Pre-deployment validation
+
+Use `python3 scripts/ci/validate-config-metadata.py` to catch missing references, duplicate fallback routes, duplicate mapping execution orders, and invalid effective date ranges before deployment.

@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"><label>EMEA Command Center</label><protected>false</protected>
-<values><field>Org_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">EMEA_SUPPORT_PROD</value></values>
-<values><field>Assignment_Target_Key__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">EMEA_COMMAND</value></values>
-<values><field>Assignment_Type__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">Queue</value></values>
-<values><field>External_Assignment_Id__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">886ebd7da9fe198100f92cc8d1d21000</value></values>
-<values><field>Display_Name__c</field><value xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">EMEA Clinical Command Center</value></values>
-<values><field>Is_Active__c</field><value xsi:type="xsd:boolean" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">true</value></values></CustomMetadata>
+<?xml version='1.0' encoding='UTF-8'?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><label>EMEA Command Center</label><protected>false</protected>
+<values><field>Org_Key__c</field><value xsi:type="xsd:string">EMEA_SUPPORT_PROD</value></values>
+<values><field>Assignment_Target_Key__c</field><value xsi:type="xsd:string">EMEA_COMMAND</value></values>
+<values><field>Assignment_Type__c</field><value xsi:type="xsd:string">Queue</value></values>
+<values><field>External_Assignment_Id__c</field><value xsi:type="xsd:string">886ebd7da9fe198100f92cc8d1d21000</value></values>
+<values><field>Display_Name__c</field><value xsi:type="xsd:string">EMEA Clinical Command Center</value></values>
+<values><field>Is_Active__c</field><value xsi:type="xsd:boolean">true</value></values><values><field>Lifecycle_Status__c</field><value xsi:type="xsd:string">Active</value></values><values><field>Effective_Start_Date__c</field><value xsi:type="xsd:date">2026-01-01</value></values><values><field>Documentation_URL__c</field><value xsi:type="xsd:string">docs/admin/configuring-salesforce-servicenow-integration.md</value></values><values><field>Admin_Notes__c</field><value xsi:type="xsd:string">Sample assignment target for routing demonstrations.</value></values></CustomMetadata>

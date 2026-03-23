@@ -9,10 +9,13 @@ repo-root/
   force-app/
     core/
       main/
-        default/          # reusable framework metadata and code
+        default/          # reusable runtime framework metadata and code
+    config/
+      main/
+        default/          # configuration schema and secure connection metadata
     admin/
       main/
-        default/          # admin app, tabs, layouts, permissions, reports, dashboards
+        default/          # admin app, tabs, layouts, permissions, and operator UX
     sample-config/
       main/
         default/          # sample custom metadata records for example org setups
@@ -30,11 +33,12 @@ repo-root/
 
 ## Packaging model
 
-- **Core framework package**: Apex orchestration, custom objects, custom metadata type definitions, credentials, and reusable observability model.
-- **Admin package**: internal operational console metadata such as tabs, layouts, permission sets, reports, dashboards, and the admin application shell.
+- **Core runtime package**: Apex orchestration, async processing, runtime custom objects, and the reusable observability model.
+- **Config base package**: custom metadata type definitions plus Named Credential / External Credential metadata that define the reusable configuration contract.
+- **Admin package**: internal operational console metadata such as tabs, layouts, permission sets, and the admin application shell.
 - **Sample config package**: non-production example custom metadata records demonstrating how different orgs can configure request types, routing, endpoint keys, and org definitions.
 
-This split keeps reusable framework assets isolated from org-specific samples while still allowing an operational/admin layer to be installed where needed.
+This split keeps executable runtime behavior separate from configuration schema, isolates admin/support UX from runtime metadata, and keeps org-specific samples out of the reusable product layers.
 
 ## Centralized incident visibility design
 
@@ -61,7 +65,7 @@ These hooks support future aggregation in an admin org without assuming every so
 
 ## Existing Salesforce DX configuration
 
-- `sfdx-project.json` defines three package directories: `force-app/core`, `force-app/admin`, and `force-app/sample-config`.
+- `sfdx-project.json` defines four package directories: `force-app/core`, `force-app/config`, `force-app/admin`, and `force-app/sample-config`.
 - `manifests/package.xml` and `manifest/package.xml` provide starter deployment manifests.
 - `config/project-scratch-def.json` remains available for scratch org creation.
 
@@ -71,9 +75,16 @@ These hooks support future aggregation in an admin org without assuming every so
 sf org login web --alias devhub
 sf org create scratch --definition-file config/project-scratch-def.json --alias sn-integ-scratch --set-default --duration-days 7
 sf project deploy start --source-dir force-app/core
+sf project deploy start --source-dir force-app/config
 sf project deploy start --source-dir force-app/admin
 sf project deploy start --source-dir force-app/sample-config
 sf project retrieve start --manifest manifests/package.xml
+```
+
+A lightweight metadata guardrail script is also available:
+
+```bash
+python3 scripts/ci/validate-config-metadata.py
 ```
 
 ## CI/CD quality gates

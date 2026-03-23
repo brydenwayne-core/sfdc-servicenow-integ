@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <defaultValue>false</defaultValue>
-    <description>Indicates whether this rule is the fallback for the request type.</description>
-    <fullName>Is_Default__c</fullName>
-    <label>Is Default</label>
-    <type>Checkbox</type>
-</CustomField>
