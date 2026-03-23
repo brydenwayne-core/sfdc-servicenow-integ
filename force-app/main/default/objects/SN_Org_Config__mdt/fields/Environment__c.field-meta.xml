@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Environment tag used to separate non-production and production contexts.</description>
+    <fullName>Environment__c</fullName>
+    <label>Environment</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>DEV</fullName><default>true</default><label>DEV</label></value>
+            <value><fullName>TEST</fullName><default>false</default><label>TEST</label></value>
+            <value><fullName>PROD</fullName><default>false</default><label>PROD</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

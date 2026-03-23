@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses><apexClass>SN_FieldMappingService</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>SN_IncidentPayloadBuilder</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>SN_IntegrationOrchestrator</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>SN_MetadataConfigService</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>SN_NamedCredentialResolver</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>SN_RequestRouter</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>SN_ServiceNowClient</apexClass><enabled>true</enabled></classAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Org_Config__mdt</name></customMetadataTypeAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Request_Type__mdt</name></customMetadataTypeAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Field_Mapping__mdt</name></customMetadataTypeAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Routing_Rule__mdt</name></customMetadataTypeAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Assignment_Target__mdt</name></customMetadataTypeAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Feature_Toggle__mdt</name></customMetadataTypeAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Endpoint_Config__mdt</name></customMetadataTypeAccesses>
+    <customMetadataTypeAccesses><enabled>true</enabled><name>SN_Incident_Template__mdt</name></customMetadataTypeAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>ServiceNow Integration Admin</label>
+    <objectPermissions><allowCreate>true</allowCreate><allowDelete>true</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>true</modifyAllRecords><object>SN_Integration_Error__c</object><viewAllRecords>true</viewAllRecords></objectPermissions>
+    <objectPermissions><allowCreate>true</allowCreate><allowDelete>true</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>true</modifyAllRecords><object>SN_Integration_Run__c</object><viewAllRecords>true</viewAllRecords></objectPermissions>
+    <tabSettings><tab>SN_Integration_Error__c</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>SN_Integration_Run__c</tab><visibility>Visible</visibility></tabSettings>
+</PermissionSet>

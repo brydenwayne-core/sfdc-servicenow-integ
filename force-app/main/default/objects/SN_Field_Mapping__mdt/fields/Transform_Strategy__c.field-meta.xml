@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Documents how a future mapper should translate the source value.</description>
+    <fullName>Transform_Strategy__c</fullName>
+    <label>Transform Strategy</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Direct</fullName><default>true</default><label>Direct</label></value>
+            <value><fullName>Static Value</fullName><default>false</default><label>Static Value</label></value>
+            <value><fullName>Formula Placeholder</fullName><default>false</default><label>Formula Placeholder</label></value>
+            <value><fullName>Reference Lookup</fullName><default>false</default><label>Reference Lookup</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

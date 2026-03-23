@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>High-level behavior this request type should trigger.</description>
+    <fullName>Operation_Mode__c</fullName>
+    <label>Operation Mode</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Create Incident</fullName><default>true</default><label>Create Incident</label></value>
+            <value><fullName>Update Incident</fullName><default>false</default><label>Update Incident</label></value>
+            <value><fullName>Create Or Update</fullName><default>false</default><label>Create Or Update</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Stores source-to-target field mappings so payload shape can evolve by org and request type.</description>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <label>ServiceNow Field Mapping</label>
+    <nameField><label>Field Mapping Name</label><type>Text</type></nameField>
+    <pluralLabel>ServiceNow Field Mappings</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

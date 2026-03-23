@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Default ServiceNow impact value.</description>
+    <fullName>Impact__c</fullName>
+    <label>Impact</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>1 - High</fullName><default>true</default><label>1 - High</label></value>
+            <value><fullName>2 - Medium</fullName><default>false</default><label>2 - Medium</label></value>
+            <value><fullName>3 - Low</fullName><default>false</default><label>3 - Low</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
