@@ -1,3 +1,8 @@
 public with sharing class SN_IntegrationOrchestrator {
-    // Placeholder orchestrator for metadata-driven ServiceNow request handling.
+    /**
+     * Legacy facade retained for backward-compatible entry points while the new layered architecture is adopted.
+     */
+    public static Id submitCase(Id caseId, String requestTypeKey) {
+        return null;
+    }
 }
