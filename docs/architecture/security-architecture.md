@@ -1,43 +1,49 @@
 # Security Architecture
 
 ## Purpose
-Define security controls, trust boundaries, and governance expectations for the integration package.
+Describe identity, access, data-protection, and operational security controls for the integration package.
 
-## Security Control Model
+## Security Model
 
-1. **Credential security:**
-   - Use Named Credential + External Credential metadata.
-   - No secrets in Apex classes or custom metadata payload fields.
-2. **Access governance:**
-   - Use dedicated permission sets for admin/operator/support personas.
-   - Restrict modification rights for configuration metadata and operational data.
-3. **Data protection:**
-   - Persist safe request/response summaries only.
-   - Avoid raw sensitive payload storage in transaction/error objects.
-4. **Audit and traceability:**
-   - Correlation and idempotency identifiers enable incident reconstruction.
-   - Lifecycle and status fields provide operational audit trails.
+### Identity and Credential Controls
 
-## Threat Considerations
+- Outbound authentication is handled by Salesforce Named Credential + External Credential.
+- Endpoint indirection is controlled via `SN_Endpoint_Config__mdt` and org metadata references.
+- Secrets are not stored in Apex classes or runtime transaction objects.
 
-- Misconfigured credentials or endpoint references.
-- Overprivileged users altering routing/mapping behavior.
-- Sensitive details leaked in logs or support UI.
-- Replay misuse causing duplicate downstream effects.
+### Access Controls
 
-## Required Mitigations
+- Permission sets in `force-app/admin/main/default/permissionsets` segment admin and support capabilities.
+- Metadata mutation rights are restricted to approved admin/release roles.
+- Support operators receive least-privilege access for triage and reprocessing.
 
-- Config validation before go-live and during change windows.
-- Security review of permission set assignments.
-- Runbook-guided handling for authentication and transport failures.
-- Controlled replay and retry eligibility policies.
+### Data Protection
 
-## Healthcare Governance Alignment
+- Runtime objects capture safe summaries and classification fields.
+- Raw payload persistence is avoided to reduce PHI/PII exposure risk.
+- Correlation IDs are used for traceability without storing full sensitive payloads.
 
-- Least privilege and role segmentation.
-- Data minimization in operational telemetry.
-- Change traceability through governed metadata lifecycle fields.
-- Standardized operational response paths.
+### Operational Security
+
+- Credential failures are treated as security incidents until triaged.
+- Replay actions require operator controls and must respect idempotency policy.
+- Kill switches are available for emergency containment.
+
+## Threats and Controls Matrix
+
+| Threat | Control |
+| --- | --- |
+| Credential compromise/misconfiguration | External Credential governance, rotation, validation runbooks |
+| Unauthorized metadata change | Permission segregation + release gates |
+| Sensitive data leakage in logs | Safe summary policy + field-level review |
+| Replay abuse leading to duplicates | Replay eligibility + idempotency controls |
+
+## Healthcare Governance Mapping
+
+- Least privilege and role-based operational controls.
+- Data minimization in runtime telemetry.
+- Audit trail through transaction/error/run records.
+- Controlled incident-response path documented in runbooks.
 
 ## Cross-links
 
@@ -45,4 +51,4 @@ Define security controls, trust boundaries, and governance expectations for the 
 - [Access Model](access-model.md)
 - [Security Compliance Review](security-compliance-review.md)
 - [Integration Support Runbook](../runbooks/integration-support-runbook.md)
-- [ServiceNow Endpoint Authentication Failure Triage](../knowledge/servicenow/ka-sn-001-endpoint-authentication-failure-triage.md)
+- [Failure Classification Flow](../process/failure-classification-and-triage.md)

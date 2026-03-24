@@ -1,43 +1,40 @@
 # Deployment Architecture
 
 ## Purpose
-Describe package installation order, environment promotion, and org onboarding flow.
+Define package topology, promotion sequence, and onboarding checkpoints across environments.
 
-## Package Topology
+## Package Topology (from `sfdx-project.json`)
 
-Defined in `sfdx-project.json` as four package directories:
+1. `SN_Integration_Config_Base` → `force-app/config`
+2. `SN_Integration_Core_Runtime` → `force-app/core` (depends on config)
+3. `SN_Integration_Admin` → `force-app/admin` (depends on config + core)
+4. `SN_Integration_Sample_Config` → `force-app/sample-config` (depends on config)
 
-1. `SN_Integration_Config_Base` (`force-app/config`)
-2. `SN_Integration_Core_Runtime` (`force-app/core`) depends on config base
-3. `SN_Integration_Admin` (`force-app/admin`) depends on config + core
-4. `SN_Integration_Sample_Config` (`force-app/sample-config`) depends on config base
+## Deployment Sequence
 
-## Recommended Deployment Sequence
+1. Deploy `config` package.
+2. Deploy `core` runtime package.
+3. Configure/validate Named Credential and endpoint records.
+4. Deploy `admin` package for operator/admin personas.
+5. Deploy sample config only as onboarding scaffold (typically non-prod).
+6. Activate org/request metadata through controlled change management.
 
-1. Deploy/install config base.
-2. Deploy/install runtime package.
-3. Configure and validate credentials/endpoints.
-4. Deploy/install admin package for support personas.
-5. Deploy sample config only to non-production or as onboarding scaffold.
-6. Promote approved org-specific metadata records.
+## Environment Progression Model
 
-## Environment Model
+- **Dev/Sandbox:** rapid metadata iteration, unit and integration validation.
+- **UAT/Pre-prod:** end-to-end scenario validation and runbook rehearsal.
+- **Production:** controlled activation, monitored rollout, rollback and replay readiness.
 
-- **Lower environments:** validate request types, routing, and mappings with sample scaffolds.
-- **Pre-production:** run config validation and integration test scenarios.
-- **Production:** controlled metadata activation with rollback/replay plan.
+## Promotion Gates
 
-## Onboarding Control Points
-
-- Endpoint and org config existence/active state.
-- Request type completeness (mapping, template, routing, assignment).
-- Feature toggle posture and kill-switch defaults.
-- Support readiness (dashboards, runbooks, ownership).
+- Metadata completeness checks (org/request/routing/mapping/toggles).
+- Security checks (credential and permissions posture).
+- Observability checks (telemetry fields available and reportable).
+- Support readiness checks (runbook ownership and escalation paths).
 
 ## Cross-links
 
-- [ADR-001](../adr/ADR-001-servicenow-salesforce-integration.md)
 - [Package Modularity Overview](package-modularity-overview.md)
-- [Admin Configuration Guide](../admin/configuring-salesforce-servicenow-integration.md)
 - [CI/CD Quality Gates](../release/ci-cd-quality-gates.md)
-- [Onboarding Architecture Overview](../onboarding/project-context-requirements-architecture-overview.md)
+- [New Org Onboarding Flow](../process/new-org-onboarding.md)
+- [Admin Configuration Guide](../admin/configuring-salesforce-servicenow-integration.md)

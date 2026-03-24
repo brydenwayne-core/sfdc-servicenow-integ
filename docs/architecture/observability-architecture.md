@@ -1,37 +1,39 @@
 # Observability Architecture
 
 ## Purpose
-Define how runtime behavior is measured, triaged, and operated.
+Define observability entities, key telemetry dimensions, and operational measurement practices.
 
-## Observability Entities
+## Observability Data Model
 
-- `Integration_Transaction__c` (primary lifecycle and execution telemetry)
-- `Integration_Error__c` and `SN_Integration_Error__c` (error detail and categorization)
-- `SN_Integration_Run__c` (run-level aggregation)
-- `ServiceNow_Incident_Link__c` (cross-system correlation)
+| Entity | Role |
+| --- | --- |
+| `Integration_Transaction__c` | Primary processing lifecycle record |
+| `Integration_Error__c` / `SN_Integration_Error__c` | Detailed error and failure context |
+| `SN_Integration_Run__c` | Aggregate run/execution grouping |
+| `ServiceNow_Incident_Link__c` | Cross-system identity and sync linkage |
 
-## Key Telemetry Dimensions
+## Key Dimensions
 
-- org and business partitioning (`SalesforceOrgCode__c`, `BusinessUnit__c`),
-- request semantics (`RequestType__c`, `Operation__c`),
-- reliability posture (`Status__c`, `Lifecycle_State__c`, `RetryCount__c`, `Replay_Eligible__c`),
-- failure taxonomy (`Failure_Class__c`, `ErrorCategory__c`, `ErrorCode__c`),
-- traceability (`CorrelationId__c`, `IdempotencyKey__c`).
+- Org and business partitioning (`SalesforceOrgCode__c`, `BusinessUnit__c`)
+- Request semantics (`RequestType__c`, `Operation__c`)
+- Reliability state (`Status__c`, `Lifecycle_State__c`, `RetryCount__c`, `Replay_Eligible__c`)
+- Failure taxonomy (`Failure_Class__c`, `ErrorCategory__c`, `ErrorCode__c`)
+- Traceability (`CorrelationId__c`, `IdempotencyKey__c`)
 
-## Operational KPI Baseline
+## Operational SLO/KPI Baseline
 
-- success/failure rate by org + request type,
-- retry rate and retry-age distribution,
-- replay backlog over threshold age,
-- median and P95 time-to-triage,
-- recurring failure class trends.
+1. Success rate by org and request type.
+2. Retry rate and retry-age distribution.
+3. Replay backlog age and volume.
+4. Median and P95 time-to-triage.
+5. Repeat failure class frequency.
 
-## Support Workflow Integration
+## Monitoring and Response Loop
 
-1. Detect abnormal failure/retry trend.
-2. Triage by failure class and correlation identifiers.
-3. Apply runbook decision tree (replay, reprocess, or escalate).
-4. Record resolution and update metadata/process controls if needed.
+1. Detect deviation from KPI thresholds.
+2. Classify failures by taxonomy and affected business scope.
+3. Execute runbook workflow (retry/replay/escalate).
+4. Record remediation and identify config/process correction.
 
 ## Cross-links
 
@@ -39,4 +41,4 @@ Define how runtime behavior is measured, triaged, and operated.
 - [Runbook Observability Model](../runbooks/observability-model.md)
 - [Integration Support Runbook](../runbooks/integration-support-runbook.md)
 - [Reprocessing Runbook](../runbooks/reprocessing-runbook.md)
-- [Salesforce Transaction Correlation Triage](../knowledge/salesforce/ka-sf-001-transaction-correlation-triage.md)
+- [Replay and Reprocessing Flow](../process/replay-and-reprocessing.md)
