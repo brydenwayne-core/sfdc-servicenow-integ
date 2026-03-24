@@ -1,174 +1,133 @@
-# ADR-001: Metadata-Driven Salesforce Case to ServiceNow Incident Integration
-
-## Purpose
-Capture architecture decisions and their consequences for the Salesforce-ServiceNow integration.
-
-## Audience
-Enterprise architects, engineering leadership, governance reviewers
-
-## Scope
-Decision context, selected option, and expected impacts for architecture choices.
-
-## Related Documents
-- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md); [Documentation Master Index](../indexes/README.md)
-
-## Operational Notes
-- Treat this document as part of the enterprise documentation system defined on 2026-03-24.
-- Escalate conflicting guidance to architecture owners before implementation changes.
-
-## Revision Considerations
-- Update links and examples whenever repository structure or package boundaries change.
-- Record substantial directional changes via ADRs and cross-link from this document.
-
-## Core Content
+# ADR-001: Metadata-Driven Salesforce–ServiceNow Integration Architecture
 
 - **Status:** Accepted
 - **Date:** 2026-03-23
-- **Decision Owners:** Salesforce platform architecture, integration engineering, support operations
+- **Last Reviewed:** 2026-03-24
+- **Decision Owners:** Salesforce Platform Architecture, Integration Engineering, Support Operations, Security Architecture
+- **Supersedes:** None
+- **Superseded By:** None
 
 ## Context
 
-UCLA Health needs an enterprise integration pattern that connects Salesforce Cases with ServiceNow Incidents while remaining reusable across multiple Salesforce orgs. The first implementation targets an Apex REST integration between a Salesforce org and a shared ServiceNow instance, but the architecture must support future expansion to additional Salesforce orgs without duplicating code or creating org-specific forks.
+UCLA Health requires a reusable, governable integration architecture that connects Salesforce Case-driven workflows to ServiceNow Incident management across multiple Salesforce orgs.
 
-Several constraints shape this decision:
+The implementation in this repository already includes:
 
-- Case intake, routing, and operational support processes are still evolving.
-- Different Salesforce orgs may require different routing, field mappings, assignment groups, and validation behavior.
-- New ServiceNow fields, request types, and downstream support teams are expected over time.
-- Security and audit expectations require managed credentials, traceable integration behavior, and controlled access to configuration.
-- Support teams need enough observability to diagnose failed transactions without exposing sensitive data.
+- metadata-driven configuration types (`SN_Org_Config__mdt`, `SN_Request_Type__mdt`, `SN_Field_Mapping__mdt`, routing/assignment/template/toggle types),
+- orchestration and support services in Apex (`SN_IntegrationOrchestrator`, `SN_ServiceNowClient`, `SN_TransactionLogService`, `SN_TransactionReplayService`, queueables),
+- runtime observability objects (`Integration_Transaction__c`, `Integration_Error__c`, `SN_Integration_Error__c`, `ServiceNow_Incident_Link__c`, `SN_Integration_Run__c`),
+- package separation for runtime/config/admin/sample artifacts.
 
-A hardcoded integration would deliver an initial connection quickly, but it would also make every routing or mapping change dependent on Apex deployments. That creates unnecessary release friction, makes org onboarding slower, and increases regression risk as the number of supported orgs grows.
+Enterprise architecture and healthcare governance constraints include:
+
+1. **Controlled change management:** routing and mapping behavior must be evolvable without frequent code releases.
+2. **Security posture:** secrets and endpoint credentials must be managed via Salesforce platform credential frameworks.
+3. **Traceability:** transactions must be observable and auditable with safe logging practices.
+4. **Multi-org scalability:** one integration product should support multiple orgs with variable business behavior.
+5. **Operational resilience:** retries, replay, and runbook-driven support must be available.
+
+## Issue Statement
+
+How should the integration be architected so that it remains reusable across orgs, secure for regulated operations, supportable by operations teams, and adaptable to evolving routing/mapping requirements without creating org-specific code forks?
 
 ## Decision
 
-We will implement the Salesforce Case to ServiceNow Incident integration as a **metadata-driven Apex REST framework** with these core characteristics:
+Adopt and continue enforcing a **metadata-driven, package-modular Salesforce integration architecture** where:
 
-1. **Apex owns reusable framework behavior** such as orchestration, validation execution, transformation, callout handling, retry coordination, and logging.
-2. **Configuration lives in deployable metadata** instead of Apex code wherever business behavior is expected to vary by org, use case, environment, or future rollout stage.
-3. **ServiceNow connectivity uses secure Salesforce platform mechanisms** such as Named Credentials and External Credentials rather than embedded secrets.
-4. **Business flows are modeled around Cases as the Salesforce system of engagement** and Incidents as the downstream service-management record.
-5. **The design must support phased maturity** from outbound incident creation to richer bidirectional synchronization, comments, attachments, and additional org onboarding.
-
-## Architectural Expectations
-
-### Runtime pattern
-
-The integration runtime should follow this high-level flow:
-
-1. A Salesforce Case is created or updated through standard UI, automation, or API.
-2. Apex evaluates metadata to determine whether the Case is in scope for ServiceNow synchronization.
-3. Routing and field-mapping metadata are applied to build the target payload.
-4. A ServiceNow client service performs a REST callout using a Named Credential.
-5. The response updates the Case and an integration transaction log.
-6. Subsequent sync events use the same metadata-driven rules for status, comments, file transfer, and error handling.
-
-### Configuration boundaries
-
-The following categories must live in metadata rather than code whenever feasible:
-
-- Salesforce org identity or tenant definition
-- Case type or integration use case definitions
-- ServiceNow assignment group and routing rules
-- Field-level mapping and defaulting behavior
-- Incident template selection
-- Feature flags and activation states
-- Environment-specific endpoint references
-- Optional processing toggles for comments, files, or status sync
-
-## Why configuration must live in metadata instead of code
-
-Configuration must live in metadata because the most likely sources of change are business-owned, org-specific, and operational rather than algorithmic. Routing changes, assignment group updates, queue realignment, field mapping revisions, and staged rollout toggles should not require Apex rewrites for every adjustment.
-
-Using metadata provides the following benefits:
-
-- **Lower cost of change:** administrators and release teams can update deployable configuration without reopening core integration logic.
-- **Multi-org scalability:** the same codebase can support multiple Salesforce orgs using different metadata records instead of branching logic.
-- **Safer deployments:** business-rule changes stay isolated from framework code, reducing regression scope.
-- **Auditability:** configuration can be versioned, reviewed, and promoted through environments in a controlled way.
-- **Phased rollout support:** features can be enabled selectively for one org or use case before broader adoption.
-- **Packageability:** metadata-driven behavior aligns with Salesforce deployment and packaging models.
-
-Code should remain responsible only for stable technical capabilities that are unlikely to change with each business-process adjustment.
-
-## Security Expectations
-
-The integration must meet these security expectations:
-
-- Use Named Credentials and External Credentials for authentication and endpoint management.
-- Never store usernames, passwords, client secrets, tokens, or endpoint URLs directly in Apex.
-- Restrict integration execution to dedicated service identities and least-privilege permission models.
-- Limit who can modify metadata that affects routing, field mappings, or endpoint behavior.
-- Redact or avoid sensitive payload content in logs, platform events, debug statements, and custom objects.
-- Preserve traceability through correlation identifiers, transaction status, and auditable configuration changes.
-- Ensure failure handling does not leak protected information through user-facing errors.
+1. **Stable execution logic remains in Apex runtime services** (orchestration, validation, callouts, retry/replay, and transaction logging).
+2. **Variable business behavior remains in deployable metadata** (org scope, request type behavior, routing, assignment, mapping, toggles, endpoint references).
+3. **External connectivity uses Named Credential + External Credential** and never embeds secrets in Apex or custom objects.
+4. **Observability is modeled as first-class runtime data** with safe summaries, correlation IDs, idempotency keys, error categories, and replay lifecycle states.
+5. **Package boundaries remain explicit** so runtime, config schema, admin UX, and sample reference data can evolve with controlled dependencies.
 
 ## Alternatives Considered
 
-### Alternative 1: Hardcoded point-to-point Apex integration
+### Alternative A — Hardcoded point-to-point Apex
 
-Build a direct Apex trigger or service that maps Case fields to ServiceNow fields in code and sends a callout with org-specific branching.
+Implement mapping/routing behavior directly in classes and triggers.
 
-**Why not chosen:**
+- **Pros:** Fastest initial implementation for one org.
+- **Cons:** Poor multi-org scalability, frequent code deployments for business changes, higher regression risk, weak governance separation.
+- **Decision:** Rejected.
 
-- Every mapping or routing change would require code changes and deployment.
-- Supporting additional Salesforce orgs would increase conditional logic and maintenance burden.
-- It would be harder to delegate safe process evolution to administrators.
-- Testing complexity would grow as org-specific branches accumulate.
+### Alternative B — Middleware-first with thin Salesforce logic
 
-### Alternative 2: Middleware-first integration with minimal Salesforce logic
+Place routing/mapping orchestration in an external iPaaS layer and keep Salesforce thin.
 
-Push most mapping and routing responsibilities into an external middleware platform while Salesforce sends a generic payload.
+- **Pros:** Centralized enterprise orchestration potential.
+- **Cons:** Adds platform dependency and change path for use cases that this repo already supports in metadata; does not remove Salesforce-side governance responsibilities.
+- **Decision:** Deferred (may complement future evolution).
 
-**Why not chosen right now:**
+### Alternative C — Flow-centric orchestration with minimal Apex
 
-- It adds another critical platform dependency for changes that Salesforce metadata can own effectively.
-- The current need is for a reusable Salesforce-native framework that can be deployed across orgs.
-- Core Case behavior, eligibility rules, and user feedback still need to be modeled close to Salesforce data and automation.
+Use declarative automation as primary orchestration engine.
 
-This alternative may still complement the design later for enterprise orchestration, but it does not replace the need for a metadata-driven Salesforce application layer.
-
-### Alternative 3: Flow-only configuration with minimal Apex
-
-Use Flow for orchestration and field mapping, keeping Apex only for callouts.
-
-**Why not chosen as the primary pattern:**
-
-- Complex mapping, retries, and structured logging are better handled in cohesive service classes.
-- Large-scale multi-org integration logic can become difficult to test and govern when split heavily across automation assets.
-- Apex provides stronger control over serialization, error handling, and transport abstraction.
-
-Flow can still be used for intake and invoking services where appropriate, but it should not replace the core framework pattern.
+- **Pros:** Admin visibility for simple patterns.
+- **Cons:** Lower control for transport errors, serialization, idempotency coordination, and testability for complex multi-org scenarios.
+- **Decision:** Rejected as primary architecture (allowed for selective intake orchestration).
 
 ## Consequences
 
-### Positive consequences
+### Positive
 
-- The solution becomes reusable across multiple Salesforce orgs.
-- Business-rule changes can be promoted through metadata rather than repeated code edits.
-- The architecture supports phased rollout of new synchronization capabilities.
-- Security posture improves by separating secrets and endpoint management from code.
-- Support teams gain more reliable observability through standardized logging and correlation.
+- Reduces release friction for approved behavior changes by moving variance to metadata.
+- Improves governance by separating policy/configuration from execution code.
+- Increases reuse across orgs and onboarding consistency.
+- Provides operational controls for retry/replay and safer incident triage.
 
-### Negative consequences
+### Negative / Trade-offs
 
-- The initial design requires more upfront documentation and metadata modeling than a simple point integration.
-- Metadata design quality becomes critical; poor configuration structure could create runtime ambiguity.
-- Administrators need governance around who can change routing and mapping metadata.
-- The framework requires strong test coverage to validate metadata-driven behavior.
+- Strong metadata governance is required; weak metadata quality can cause runtime ambiguity.
+- Documentation and cross-team process maturity become mandatory dependencies.
+- Test strategy must continuously validate metadata permutations and failure classes.
 
-## Implementation Notes
+## Assumptions
 
-The implementation should introduce source documents and packageable assets that support this ADR, including:
+1. Salesforce remains the system of engagement for intake and context collection.
+2. ServiceNow Incident APIs remain the downstream integration contract.
+3. Security teams permit Named Credential / External Credential as enterprise-approved secret handling.
+4. Operations teams use runbook-driven support on top of transaction/error objects.
+5. Package promotion continues with current modular boundaries defined in `sfdx-project.json`.
 
-- project context and architecture documentation,
-- a use case register,
-- a field ownership matrix,
-- an operational support runbook,
-- Custom Metadata Types for routing and mappings,
-- Apex service layers for orchestration and transport,
-- and integration logging with retry-aware status tracking.
+## Risks and Mitigations
 
-## Decision Outcome
+| Risk | Impact | Mitigation |
+| --- | --- | --- |
+| Metadata drift across orgs | Routing/mapping inconsistency and incidents | Enforce lifecycle fields, effective dates, and review checklists in admin process docs |
+| Credential misconfiguration | Outbound failures or auth lockouts | Pre-go-live config validation + support runbook triage for auth failures |
+| Sensitive data exposure in logs | Compliance breach | Use safe summaries only, avoid raw payload persistence, periodic log review |
+| Retry storms / replay misuse | Throughput degradation and duplicate updates | Replay eligibility controls, idempotency keys, failure taxonomy, operator runbook guardrails |
+| Package boundary erosion | Coupling and release instability | Architecture review gate for metadata placement and dependency direction |
 
-Accepted. All subsequent integration design and implementation work should align to this ADR unless a later ADR explicitly supersedes it.
+## Healthcare / Enterprise Governance Alignment
+
+- **Least privilege:** permission-set-based operational access and credential isolation.
+- **Auditability:** transaction and run records support post-incident traceability.
+- **Change control:** metadata lifecycle fields and package modularity align with controlled promotion.
+- **Data minimization:** safe summaries and redaction-oriented logging strategy reduce protected-data exposure.
+- **Operational readiness:** documented runbooks for support, reprocessing, and feature toggles.
+
+## Measurable Follow-up Actions
+
+1. **ADR conformance checks:** during each release, verify all architecture documents still map to implemented package structure and classes.
+2. **Observability KPI baseline:** track success rate, retry rate, replay backlog age, and mean time to triage by org/request type.
+3. **Security validation cadence:** quarterly review of permission sets, credential references, and logging fields against security architecture.
+4. **Metadata quality gate:** require request type onboarding checklist completion before activating new org/request type metadata.
+5. **Decision refresh:** review this ADR every 6 months or on major scope change.
+
+## Cross-links
+
+- [ADR Index](README.md)
+- [System Context](../architecture/system-context.md)
+- [Logical Architecture](../architecture/logical-architecture.md)
+- [Component Model](../architecture/component-model.md)
+- [Metadata Architecture](../architecture/metadata-architecture.md)
+- [Security Architecture](../architecture/security-architecture.md)
+- [Observability Architecture](../architecture/observability-architecture.md)
+- [Deployment Architecture](../architecture/deployment-architecture.md)
+- [Package Modularity Overview](../architecture/package-modularity-overview.md)
+- [Integration Support Runbook](../runbooks/integration-support-runbook.md)
+- [Reprocessing Runbook](../runbooks/reprocessing-runbook.md)
+- [Feature Toggle Runbook](../runbooks/feature-toggle-runbook.md)
+- [Admin Configuration Guide](../admin/configuring-salesforce-servicenow-integration.md)
+- [Use Case Register](../process/use-case-register.md)

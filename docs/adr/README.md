@@ -1,24 +1,34 @@
-# ADR Index
+# Architecture Decision Records (ADR) Index
 
 ## Purpose
-Catalog all architecture decision records and their lifecycle states.
-
-## Audience
-Architects, engineering leadership, governance reviewers.
+Provide a governed index of durable architectural decisions and their lifecycle status.
 
 ## Scope
-Decision records in `docs/adr`.
+All ADRs in `docs/adr/`.
+
+## ADR Register
+
+| ADR | Status | Date | Summary |
+| --- | --- | --- | --- |
+| [ADR-001: Metadata-Driven Salesforce–ServiceNow Integration Architecture](ADR-001-servicenow-salesforce-integration.md) | Accepted | 2026-03-23 | Establishes metadata-driven runtime, package modularity, observability, and credential security as the core integration pattern. |
+
+## ADR Quality Standard
+
+Each ADR in this repository should include, at minimum:
+
+- context,
+- issue statement,
+- decision,
+- alternatives considered,
+- consequences,
+- assumptions,
+- risks and mitigations,
+- measurable follow-up actions,
+- cross-links to architecture, runbook, and process documents.
 
 ## Related Documents
-- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md)
+
+- [Architecture Index](../architecture/README.md)
 - [Documentation Hub](../README.md)
-
-## Operational Notes
-- Add one ADR per durable architectural decision.
-
-## Revision Considerations
-- Keep statuses and superseded links current.
-
-## Core Content
-
-- [ADR-001: Metadata-Driven Salesforce Case to ServiceNow Incident Integration](ADR-001-servicenow-salesforce-integration.md)
+- [Integration Support Runbook](../runbooks/integration-support-runbook.md)
+- [Use Case Register](../process/use-case-register.md)
