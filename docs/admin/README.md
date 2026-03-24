@@ -22,3 +22,4 @@ All admin guides in `docs/admin`.
 ## Core Content
 
 - [Configuring Salesforce-ServiceNow Integration](configuring-salesforce-servicenow-integration.md)
+- [Admin Management Handbook](admin-management-handbook.md)

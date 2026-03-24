@@ -25,3 +25,4 @@ All operational runbooks in `docs/runbooks`.
 - [Integration Support Runbook](integration-support-runbook.md)
 - [Observability Model](observability-model.md)
 - [Reprocessing Runbook](reprocessing-runbook.md)
+- [Role-Specific Runbooks](role-specific/README.md)
