@@ -7,7 +7,75 @@ on:
   workflow_dispatch:
 
 jobs:
-  quality-gates:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      docs_changed: ${{ steps.filter.outputs.docs }}
+      salesforce_changed: ${{ steps.filter.outputs.salesforce }}
+      workflow_changed: ${{ steps.filter.outputs.workflow }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed file groups
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - '**/*.md'
+            salesforce:
+              - 'force-app/**'
+              - 'manifest/**'
+              - 'manifests/**'
+              - 'sfdx-project.json'
+              - 'scripts/ci/**'
+            workflow:
+              - '.github/workflows/**'
+
+      - name: Classify validation path
+        id: classify
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ steps.filter.outputs.docs }}" == 'true' && "${{ steps.filter.outputs.salesforce }}" != 'true' && "${{ steps.filter.outputs.workflow }}" != 'true' ]]; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Change summary
+        run: |
+          echo "Docs changed: ${{ steps.filter.outputs.docs }}"
+          echo "Salesforce changed: ${{ steps.filter.outputs.salesforce }}"
+          echo "Workflow changed: ${{ steps.filter.outputs.workflow }}"
+          echo "Docs only: ${{ steps.classify.outputs.docs_only }}"
+
+  docs-quality-gates:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.docs_only == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate markdown docs
+        run: npx --yes markdownlint-cli2 "**/*.md" "#node_modules"
+
+
+  salesforce-quality-gates:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     env:
       SF_TARGET_ORG: ${{ secrets.SF_TARGET_ORG }}
@@ -36,7 +104,7 @@ jobs:
         run: sf plugins install @salesforce/sfdx-scanner
 
       - name: Authenticate target org
-        if: ${{ secrets.SF_AUTH_URL != '' }}
+        if: ${{ secrets.SF_AUTH_URL != '' && env.SF_TARGET_ORG != '' }}
         run: |
           printf '%s' "$SF_AUTH_URL" > ./auth-url.txt
           sf org login sfdx-url --sfdx-url-file ./auth-url.txt --alias "$SF_TARGET_ORG" --set-default
@@ -44,7 +112,7 @@ jobs:
           SF_AUTH_URL: ${{ secrets.SF_AUTH_URL }}
 
       - name: Authenticate Dev Hub
-        if: ${{ secrets.SF_DEVHUB_AUTH_URL != '' && secrets.SF_DEVHUB_ALIAS != '' }}
+        if: ${{ secrets.SF_DEVHUB_AUTH_URL != '' && env.SF_DEVHUB_ALIAS != '' }}
         run: |
           printf '%s' "$SF_DEVHUB_AUTH_URL" > ./devhub-auth-url.txt
           sf org login sfdx-url --sfdx-url-file ./devhub-auth-url.txt --alias "$SF_DEVHUB_ALIAS"
