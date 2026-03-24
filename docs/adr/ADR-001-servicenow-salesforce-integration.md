@@ -1,5 +1,27 @@
 # ADR-001: Metadata-Driven Salesforce Case to ServiceNow Incident Integration
 
+## Purpose
+Capture architecture decisions and their consequences for the Salesforce-ServiceNow integration.
+
+## Audience
+Enterprise architects, engineering leadership, governance reviewers
+
+## Scope
+Decision context, selected option, and expected impacts for architecture choices.
+
+## Related Documents
+- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md); [Documentation Master Index](../indexes/README.md)
+
+## Operational Notes
+- Treat this document as part of the enterprise documentation system defined on 2026-03-24.
+- Escalate conflicting guidance to architecture owners before implementation changes.
+
+## Revision Considerations
+- Update links and examples whenever repository structure or package boundaries change.
+- Record substantial directional changes via ADRs and cross-link from this document.
+
+## Core Content
+
 - **Status:** Accepted
 - **Date:** 2026-03-23
 - **Decision Owners:** Salesforce platform architecture, integration engineering, support operations

@@ -1,5 +1,27 @@
 # CI/CD Quality Gates
 
+## Purpose
+Define release readiness checks and deployment quality controls.
+
+## Audience
+Release managers, DevOps engineers, QA leads
+
+## Scope
+Quality gates, validation commands, and release governance expectations.
+
+## Related Documents
+- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md); [Documentation Master Index](../indexes/README.md)
+
+## Operational Notes
+- Treat this document as part of the enterprise documentation system defined on 2026-03-24.
+- Escalate conflicting guidance to architecture owners before implementation changes.
+
+## Revision Considerations
+- Update links and examples whenever repository structure or package boundaries change.
+- Record substantial directional changes via ADRs and cross-link from this document.
+
+## Core Content
+
 This repository includes repo-native CI/CD helpers for validating Salesforce DX package quality without hardcoding environment details.
 
 ## Goals

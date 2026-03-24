@@ -1,6 +1,28 @@
 # Salesforce to ServiceNow Integration Admin Guide
 
 ## Purpose
+Guide platform administrators through metadata and access configuration tasks.
+
+## Audience
+Salesforce administrators, platform operators, release managers
+
+## Scope
+Configuration activities for org onboarding, metadata maintenance, and permissions.
+
+## Related Documents
+- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md); [Documentation Master Index](../indexes/README.md)
+
+## Operational Notes
+- Treat this document as part of the enterprise documentation system defined on 2026-03-24.
+- Escalate conflicting guidance to architecture owners before implementation changes.
+
+## Revision Considerations
+- Update links and examples whenever repository structure or package boundaries change.
+- Record substantial directional changes via ADRs and cross-link from this document.
+
+## Core Content
+
+## Purpose
 
 This guide explains how Salesforce administrators configure and maintain the metadata-driven Salesforce to ServiceNow integration framework. It is intended for platform admins, release managers, and implementation teams onboarding new orgs or modifying request behavior.
 
