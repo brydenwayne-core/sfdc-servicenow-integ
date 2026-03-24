@@ -1,7 +1,7 @@
 public with sharing class SN_ServiceNowClient {
     @TestVisible private static List<SN_Endpoint_Config__mdt> endpointConfigOverrides;
 
-    public enum FailureCategory { FUNCTIONAL, TECHNICAL, AUTH, CONFIGURATION }
+    public enum FailureCategory { FUNCTIONAL, TECHNICAL, AUTH, CONFIGURATION, PRE_TRANSPORT_VALIDATION }
 
     public class RequestEnvelope {
         public String methodName;
@@ -39,6 +39,14 @@ public with sharing class SN_ServiceNowClient {
         public String errorCode;
     }
 
+    public interface IEndpointConfigResolver { EndpointConfig resolve(String orgKey); }
+    public interface IHttpTransport { HttpResponse send(HttpRequest request); }
+    public interface IClientLogger { void onRequest(String operationName, String correlationId, String safeSummary); void onResponse(String operationName, String correlationId, String safeSummary); }
+
+    @TestVisible private static IEndpointConfigResolver endpointConfigResolver = new DefaultEndpointConfigResolver();
+    @TestVisible private static IHttpTransport httpTransport = new DefaultHttpTransport();
+    @TestVisible private static IClientLogger clientLogger = new NullClientLogger();
+
     /** Sends an incident create request to ServiceNow using the configured Named Credential and endpoint metadata. */
     public static HttpResponse createIncident(Map<String, Object> payload, String orgKey) {
         IncidentCreateRequest request = new IncidentCreateRequest();
@@ -49,51 +57,29 @@ public with sharing class SN_ServiceNowClient {
     }
 
     public static HttpResponse createIncident(IncidentCreateRequest request) {
-        RequestEnvelope envelope = new RequestEnvelope();
-        envelope.methodName = 'POST';
-        envelope.relativePath = '/incident';
-        envelope.orgKey = request.orgKey;
-        envelope.correlationId = request.correlationId;
-        envelope.idempotencyKey = request.idempotencyKey;
-        envelope.operationName = 'createIncident';
-        envelope.body = JSON.serialize(request.payload);
+        RequestEnvelope envelope = buildEnvelope('POST', '/incident', request == null ? null : request.orgKey,
+            request == null ? null : request.correlationId, request == null ? null : request.idempotencyKey,
+            'createIncident', request == null ? null : JSON.serialize(request.payload));
         return sendInternal(envelope).response;
     }
 
     public static ResponseEnvelope createIncidentWithHandling(IncidentCreateRequest request) {
-        RequestEnvelope envelope = new RequestEnvelope();
-        envelope.methodName = 'POST';
-        envelope.relativePath = '/incident';
-        envelope.orgKey = request.orgKey;
-        envelope.correlationId = request.correlationId;
-        envelope.idempotencyKey = request.idempotencyKey;
-        envelope.operationName = 'createIncident';
-        envelope.body = JSON.serialize(request.payload);
+        RequestEnvelope envelope = buildEnvelope('POST', '/incident', request == null ? null : request.orgKey,
+            request == null ? null : request.correlationId, request == null ? null : request.idempotencyKey,
+            'createIncident', request == null ? null : JSON.serialize(request.payload));
         return sendInternal(envelope);
     }
 
     public static ResponseEnvelope updateIncident(IncidentUpdateRequest request) {
-        RequestEnvelope envelope = new RequestEnvelope();
-        envelope.methodName = 'PATCH';
-        envelope.relativePath = '/incident/' + EncodingUtil.urlEncode(request.incidentSysId, 'UTF-8');
-        envelope.orgKey = request.orgKey;
-        envelope.correlationId = request.correlationId;
-        envelope.idempotencyKey = request.idempotencyKey;
-        envelope.operationName = 'updateIncident';
-        envelope.body = JSON.serialize(request.payload);
+        RequestEnvelope envelope = buildEnvelope('PATCH', '/incident/' + EncodingUtil.urlEncode(request.incidentSysId, 'UTF-8'),
+            request.orgKey, request.correlationId, request.idempotencyKey, 'updateIncident', JSON.serialize(request.payload));
         return sendInternal(envelope);
     }
 
     public static ResponseEnvelope addComment(CommentRequest request) {
         Map<String, Object> body = new Map<String, Object>{ 'comments' => request.comment };
-        RequestEnvelope envelope = new RequestEnvelope();
-        envelope.methodName = 'PATCH';
-        envelope.relativePath = '/incident/' + EncodingUtil.urlEncode(request.incidentSysId, 'UTF-8');
-        envelope.orgKey = request.orgKey;
-        envelope.correlationId = request.correlationId;
-        envelope.idempotencyKey = request.idempotencyKey;
-        envelope.operationName = 'addComment';
-        envelope.body = JSON.serialize(body);
+        RequestEnvelope envelope = buildEnvelope('PATCH', '/incident/' + EncodingUtil.urlEncode(request.incidentSysId, 'UTF-8'),
+            request.orgKey, request.correlationId, request.idempotencyKey, 'addComment', JSON.serialize(body));
         return sendInternal(envelope);
     }
 
@@ -105,27 +91,22 @@ public with sharing class SN_ServiceNowClient {
             'table_sys_id' => request.incidentSysId,
             'uploadFile' => request.base64Body
         };
-        RequestEnvelope envelope = new RequestEnvelope();
-        envelope.methodName = 'POST';
-        envelope.relativePath = '/attachment/file';
-        envelope.orgKey = request.orgKey;
-        envelope.correlationId = request.correlationId;
-        envelope.idempotencyKey = request.idempotencyKey;
-        envelope.operationName = 'syncFile';
-        envelope.body = JSON.serialize(body);
+        RequestEnvelope envelope = buildEnvelope('POST', '/attachment/file', request.orgKey, request.correlationId,
+            request.idempotencyKey, 'syncFile', JSON.serialize(body));
         return sendInternal(envelope);
     }
 
     /** Sends a generic request to ServiceNow for future reuse across integration operations. */
     public static HttpResponse send(String methodName, String relativePath, String body, String orgKey) {
-        RequestEnvelope envelope = new RequestEnvelope();
-        envelope.methodName = methodName;
-        envelope.relativePath = relativePath;
-        envelope.body = body;
-        envelope.orgKey = orgKey;
-        envelope.correlationId = generateCorrelationId();
-        envelope.operationName = 'genericSend';
+        RequestEnvelope envelope = buildEnvelope(methodName, relativePath, orgKey, generateCorrelationId(), null, 'genericSend', body);
         return sendInternal(envelope).response;
+    }
+
+    @TestVisible
+    static void resetDependencies() {
+        endpointConfigResolver = new DefaultEndpointConfigResolver();
+        httpTransport = new DefaultHttpTransport();
+        clientLogger = new NullClientLogger();
     }
 
     @TestVisible
@@ -135,21 +116,58 @@ public with sharing class SN_ServiceNowClient {
 
     @TestVisible
     private static SendResult sendInternal(RequestEnvelope envelope) {
+        validateEnvelope(envelope);
+
         SendResult result = new SendResult();
         result.correlationId = String.isBlank(envelope.correlationId) ? generateCorrelationId() : envelope.correlationId;
 
-        EndpointConfig endpoint = getEndpointConfig(envelope.orgKey);
+        EndpointConfig endpoint = endpointConfigResolver.resolve(envelope.orgKey);
         if (endpoint == null || String.isBlank(endpoint.namedCredential)) {
             throw buildException(FailureCategory.CONFIGURATION, null, result.correlationId, false, 'MISSING_ENDPOINT_CONFIG',
                 'No active ServiceNow endpoint configuration is available for org ' + envelope.orgKey + '.');
         }
 
+        HttpRequest request = buildHttpRequest(endpoint, envelope, result.correlationId);
+        clientLogger.onRequest(envelope.operationName, result.correlationId, 'operation=' + envelope.operationName + ';path=' + envelope.relativePath);
+
+        try {
+            result.response = httpTransport.send(request);
+            result.statusCode = result.response.getStatusCode();
+            result.responseBody = result.response.getBody();
+            result.requestId = result.response.getHeader('X-Transaction-Id');
+            result.safeSummary = buildSafeSummary(envelope.operationName, result.statusCode, result.correlationId, result.requestId);
+            applyStatusClassification(result, result.statusCode);
+            clientLogger.onResponse(envelope.operationName, result.correlationId, result.safeSummary);
+            return result;
+        } catch (CalloutException ex) {
+            Boolean timeoutLike = isTimeoutError(ex);
+            throw buildException(FailureCategory.TECHNICAL, null, result.correlationId, timeoutLike, timeoutLike ? 'CALLOUT_TIMEOUT' : 'CALLOUT_EXCEPTION', ex.getMessage());
+        }
+    }
+
+    private static void validateEnvelope(RequestEnvelope envelope) {
+        if (envelope == null) {
+            throw buildException(FailureCategory.PRE_TRANSPORT_VALIDATION, null, generateCorrelationId(), false,
+                'REQUEST_REQUIRED', 'ServiceNow request envelope is required.');
+        }
+        if (String.isBlank(envelope.orgKey)) {
+            throw buildException(FailureCategory.PRE_TRANSPORT_VALIDATION, null, generateCorrelationId(), false,
+                'ORG_KEY_REQUIRED', 'Org key is required before ServiceNow transport.');
+        }
+        if (String.isBlank(envelope.methodName) || String.isBlank(envelope.relativePath)) {
+            throw buildException(FailureCategory.PRE_TRANSPORT_VALIDATION, null, generateCorrelationId(), false,
+                'HTTP_SHAPE_INVALID', 'HTTP method and relative path are required before ServiceNow transport.');
+        }
+    }
+
+    private static HttpRequest buildHttpRequest(EndpointConfig endpoint, RequestEnvelope envelope, String correlationId) {
         HttpRequest request = new HttpRequest();
-        request.setMethod(envelope.methodName);
+        request.setMethod(envelope.methodName.toUpperCase());
         request.setEndpoint('callout:' + endpoint.namedCredential + normalizePath(endpoint.basePath, envelope.relativePath));
         request.setHeader('Accept', 'application/json');
         request.setHeader('Content-Type', 'application/json');
-        request.setHeader('X-Correlation-Id', result.correlationId);
+        request.setHeader('X-Correlation-Id', correlationId);
+        request.setHeader('X-Salesforce-Source', 'Salesforce');
         if (!String.isBlank(envelope.idempotencyKey)) {
             request.setHeader('Idempotency-Key', envelope.idempotencyKey);
         }
@@ -157,18 +175,7 @@ public with sharing class SN_ServiceNowClient {
         if (!String.isBlank(envelope.body)) {
             request.setBody(envelope.body);
         }
-
-        try {
-            result.response = new Http().send(request);
-            result.statusCode = result.response.getStatusCode();
-            result.responseBody = result.response.getBody();
-            result.requestId = result.response.getHeader('X-Transaction-Id');
-            result.safeSummary = buildSafeSummary(envelope.operationName, result.statusCode, result.correlationId, result.requestId);
-            applyStatusClassification(result, result.statusCode);
-            return result;
-        } catch (CalloutException ex) {
-            throw buildException(FailureCategory.TECHNICAL, null, result.correlationId, true, 'CALLOUT_EXCEPTION', ex.getMessage());
-        }
+        return request;
     }
 
     private static void applyStatusClassification(ResponseEnvelope result, Integer statusCode) {
@@ -183,7 +190,7 @@ public with sharing class SN_ServiceNowClient {
         } else if (statusCode == 400 || statusCode == 404 || statusCode == 409 || statusCode == 422) {
             result.failureCategory = FailureCategory.FUNCTIONAL;
             result.failureCode = 'FUNCTIONAL_FAILURE';
-        } else if (statusCode == 429 || statusCode == 500 || statusCode == 502 || statusCode == 503 || statusCode == 504) {
+        } else if (statusCode == 408 || statusCode == 429 || statusCode == 500 || statusCode == 502 || statusCode == 503 || statusCode == 504) {
             result.failureCategory = FailureCategory.TECHNICAL;
             result.failureCode = 'RETRYABLE_HTTP_FAILURE';
             result.retryable = true;
@@ -231,11 +238,51 @@ public with sharing class SN_ServiceNowClient {
         return left + right;
     }
 
+    private static Boolean isTimeoutError(CalloutException ex) {
+        String messageText = ex == null ? null : ex.getMessage();
+        if (String.isBlank(messageText)) {
+            return false;
+        }
+        String lowered = messageText.toLowerCase();
+        return lowered.contains('timeout') || lowered.contains('read timed out');
+    }
+
     private class EndpointConfig {
         public String key;
         public String namedCredential;
         public String basePath;
         public Integer timeoutMs;
+    }
+
+    private class DefaultEndpointConfigResolver implements IEndpointConfigResolver {
+        public EndpointConfig resolve(String orgKey) {
+            SN_ConfigService.OrgConfig orgConfig = SN_ConfigService.getOrgConfigWrapper(orgKey);
+            if (orgConfig == null || String.isBlank(orgConfig.endpointConfigKey)) {
+                return null;
+            }
+            for (SN_Endpoint_Config__mdt record : getEndpointConfigRecords()) {
+                if (record.Is_Active__c == true && record.Endpoint_Config_Key__c == orgConfig.endpointConfigKey) {
+                    EndpointConfig config = new EndpointConfig();
+                    config.key = record.Endpoint_Config_Key__c;
+                    config.namedCredential = record.Named_Credential__c;
+                    config.basePath = record.Base_Path__c;
+                    config.timeoutMs = record.Timeout_Ms__c == null ? 10000 : Integer.valueOf(record.Timeout_Ms__c);
+                    return config;
+                }
+            }
+            return null;
+        }
+    }
+
+    private class DefaultHttpTransport implements IHttpTransport {
+        public HttpResponse send(HttpRequest request) {
+            return new Http().send(request);
+        }
+    }
+
+    private class NullClientLogger implements IClientLogger {
+        public void onRequest(String operationName, String correlationId, String safeSummary) {}
+        public void onResponse(String operationName, String correlationId, String safeSummary) {}
     }
 
     @TestVisible
@@ -248,22 +295,18 @@ public with sharing class SN_ServiceNowClient {
         endpointConfigOverrides = null;
     }
 
-    private static EndpointConfig getEndpointConfig(String orgKey) {
-        SN_ConfigService.OrgConfig orgConfig = SN_ConfigService.getOrgConfigWrapper(orgKey);
-        if (orgConfig == null || String.isBlank(orgConfig.endpointConfigKey)) {
-            return null;
-        }
-        for (SN_Endpoint_Config__mdt record : getEndpointConfigRecords()) {
-            if (record.Is_Active__c == true && record.Endpoint_Config_Key__c == orgConfig.endpointConfigKey) {
-                EndpointConfig config = new EndpointConfig();
-                config.key = record.Endpoint_Config_Key__c;
-                config.namedCredential = record.Named_Credential__c;
-                config.basePath = record.Base_Path__c;
-                config.timeoutMs = record.Timeout_Ms__c == null ? 10000 : Integer.valueOf(record.Timeout_Ms__c);
-                return config;
-            }
-        }
-        return null;
+    @TestVisible
+    private static RequestEnvelope buildEnvelope(String methodName, String relativePath, String orgKey,
+        String correlationId, String idempotencyKey, String operationName, String body) {
+        RequestEnvelope envelope = new RequestEnvelope();
+        envelope.methodName = methodName;
+        envelope.relativePath = relativePath;
+        envelope.orgKey = orgKey;
+        envelope.correlationId = correlationId;
+        envelope.idempotencyKey = idempotencyKey;
+        envelope.operationName = operationName;
+        envelope.body = body;
+        return envelope;
     }
 
     private static List<SN_Endpoint_Config__mdt> getEndpointConfigRecords() {
