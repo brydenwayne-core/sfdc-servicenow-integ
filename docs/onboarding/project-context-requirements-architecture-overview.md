@@ -1,5 +1,27 @@
 # Project Context + Requirements + Architecture Overview
 
+## Purpose
+Help new teams understand context, architecture, and startup responsibilities.
+
+## Audience
+New engineers, admins, analysts, program leads
+
+## Scope
+Project orientation, onboarding steps, and essential references.
+
+## Related Documents
+- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md); [Documentation Master Index](../indexes/README.md)
+
+## Operational Notes
+- Treat this document as part of the enterprise documentation system defined on 2026-03-24.
+- Escalate conflicting guidance to architecture owners before implementation changes.
+
+## Revision Considerations
+- Update links and examples whenever repository structure or package boundaries change.
+- Record substantial directional changes via ADRs and cross-link from this document.
+
+## Core Content
+
 ## 1. Context
 
 UCLA Health needs a reusable Salesforce-based integration framework that connects ServiceNow incidents with Salesforce Cases across multiple Salesforce orgs. The immediate delivery target is an Apex-based integration between one ServiceNow instance and the EnterpriseCRM Salesforce org, but the solution must establish a repeatable architectural pattern that can expand from the current three Salesforce orgs to as many as ten over time.

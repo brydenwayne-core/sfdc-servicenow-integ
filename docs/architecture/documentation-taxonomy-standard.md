@@ -1,279 +1,172 @@
-# Documentation Taxonomy and File Standards
+# Documentation Taxonomy Standard
 
-- **Version:** 1.0
-- **Effective date:** 2026-03-24
-- **Applies to:** all Markdown documentation in this repository
-- **Primary goals:** consistency, role clarity, operational usability, and enterprise governance traceability
+## Purpose
+Define the enterprise documentation taxonomy and formatting standards for this Salesforce-ServiceNow integration repository.
 
-## 1) Enterprise Documentation Taxonomy
+## Audience
+Enterprise architects, technical writers, developers, admins, support teams, and release managers.
 
-All docs must map to one primary taxonomy family.
+## Scope
+All Markdown documentation in the repository, with primary focus on the `docs/` hierarchy.
 
-## 1.1 Taxonomy families
+## Related Documents
+- [Documentation Hub](../README.md)
+- [Documentation Master Index](../indexes/README.md)
+- [Documentation Audit](documentation-audit.md)
 
-1. **Architecture (`docs/architecture/`)**
-   - Purpose: describe target-state design, system boundaries, non-functional concerns, and architecture analysis.
-   - Audience: architects, senior developers, security reviewers, release leadership.
-2. **ADRs (`docs/adr/`)**
-   - Purpose: capture durable architecture decisions with context, options, and consequences.
-   - Audience: architects, engineering leadership, compliance/governance stakeholders.
-3. **Process (`docs/process/`)**
-   - Purpose: define delivery governance, SDLC rules, ownership frameworks, and planning artifacts.
-   - Audience: engineering teams, product/program leadership, governance roles.
-4. **Admin (`docs/admin/`)**
-   - Purpose: configure and maintain integration metadata, access, and operational controls.
-   - Audience: Salesforce admins, platform operators, release managers.
-5. **Runbooks (`docs/runbooks/`)**
-   - Purpose: execute operational procedures during normal operations and incidents.
-   - Audience: operators, support analysts, on-call engineers.
-6. **Troubleshooting / Knowledge Articles (`docs/knowledge/`)**
-   - Purpose: fast symptom-based triage and resolution guidance.
-   - Audience: L1/L2 support, operators, incident responders.
-7. **Design patterns (`docs/design/`)**
-   - Purpose: reusable implementation patterns and reference approaches.
-   - Audience: developers and solution designers.
+## Operational Notes
+- This standard is mandatory for newly created or significantly updated Markdown files.
+- Conflicts between documents must be resolved using canonical precedence rules in this standard.
 
-## 1.2 Canonical precedence
+## Revision Considerations
+- Update taxonomy rules when new operational domains or governance requirements are introduced.
+- Record major taxonomy changes in an ADR and link it in this document.
 
-When overlap exists, treat precedence in this order:
+## Core Content
+
+## 1. Enterprise Taxonomy
+
+All documents must map to exactly one primary taxonomy class.
+
+| Taxonomy Class | Directory | Primary Purpose |
+| --- | --- | --- |
+| ADRs | `docs/adr/` | Capture durable architecture decisions, alternatives, and consequences. |
+| Architecture | `docs/architecture/` | Describe system design, boundaries, non-functional and compliance architecture. |
+| Process | `docs/process/` | Define governance, operating models, and delivery workflows. |
+| Admin | `docs/admin/` | Describe platform configuration, permissions, and operational administration. |
+| Runbooks | `docs/runbooks/` | Provide execution playbooks for recurring operations and incident response. |
+| Troubleshooting | `docs/troubleshooting/` | Offer symptom-based diagnostic and remediation workflows. |
+| Onboarding | `docs/onboarding/` | Orient new teams to context, architecture, and responsibilities. |
+| Release | `docs/release/` | Define release readiness, quality gates, and promotion controls. |
+| Knowledge Articles | `docs/knowledge/` | Publish quick-reference support knowledge by platform domain. |
+| Indexes | `docs/indexes/` | Maintain category and role-based navigation maps. |
+
+### 1.1 Canonical Precedence
+
+When content overlaps, rely on this precedence order:
+
 1. ADRs (decision truth)
 2. Architecture docs (design truth)
-3. Admin/Runbooks (operational truth)
-4. Process docs (governance truth)
-5. Knowledge articles (rapid execution shortcuts that must link to the canonical source)
+3. Process docs (governance truth)
+4. Admin + Runbooks (execution truth)
+5. Troubleshooting + Knowledge articles (rapid-reference summaries that must link back to canonical truth)
 
-## 2) Directory Structure Standard
+## 2. Directory Structure Standard
 
-Required structure (current + added):
+Required documentation structure:
 
 ```text
 docs/
   adr/
   architecture/
+  process/
   admin/
   runbooks/
-  process/
-  design/
-  knowledge/                 # new: troubleshooting and KB articles
+  troubleshooting/
+  onboarding/
+  release/
+  knowledge/
+    salesforce/
+    servicenow/
+  indexes/
 ```
 
-Rules:
-- Every folder should contain an index file (`README.md`) listing docs, purpose, owner, and last review date.
-- Cross-family docs should live in one canonical family and be linked from others; avoid duplicate copies.
+Directory rules:
 
-## 3) File Naming Standard
+- Every major directory must include a `README.md` index file.
+- Place each document in one canonical directory; reference from others via links instead of duplication.
+- Platform-specific knowledge articles must live under `docs/knowledge/salesforce/` or `docs/knowledge/servicenow/`.
 
-## 3.1 General naming
+## 3. File Naming Standard
 
-- Use lowercase kebab-case file names: `<topic>.md`
-- Avoid overloaded terms like “overview-final-v2”.
-- Name should reflect task or domain, not meeting date.
+### 3.1 General Naming
 
-Examples:
-- `incident-escalation-matrix.md`
-- `security-control-matrix.md`
-- `org-onboarding-checklist.md`
+- Use lowercase kebab-case: `<topic>.md`.
+- Keep names descriptive and stable over time.
+- Avoid versioned names in filenames (for example `final-v2`); revisions belong in content history.
 
-## 3.2 ADR naming
+### 3.2 ADR Naming
 
-- Format: `ADR-<3-digit>-<short-title>.md`
-- Example: `ADR-002-observability-canonical-model.md`
+- Use `ADR-<3-digit>-<short-title>.md`.
+- Example: `ADR-002-observability-canonical-model.md`.
+- ADR numbers are immutable and never reused.
 
-## 3.3 Knowledge article naming
+### 3.3 Knowledge Article Naming
 
-- Format: `ka-<domain>-<symptom-or-task>.md`
-- Example: `ka-support-replay-failed-transactions.md`
+- Salesforce articles: `ka-sf-<3-digit>-<topic>.md`
+- ServiceNow articles: `ka-sn-<3-digit>-<topic>.md`
 
-## 4) Required Document Header (All Docs)
+## 4. Required Document Header Template
 
-Each file must begin with a metadata block:
+Every Markdown document must include these sections in order:
 
-```markdown
-# <Title>
+1. `# <Title>`
+2. `## Purpose`
+3. `## Audience`
+4. `## Scope`
+5. `## Related Documents`
+6. `## Operational Notes`
+7. `## Revision Considerations`
+8. `## Core Content`
 
-- **Doc Type:** <Architecture | ADR | Process | Admin | Runbook | Knowledge | Design>
-- **Purpose:** <one sentence>
-- **Audience:** <primary roles>
-- **Owner:** <team or role>
-- **Status:** <Draft | Active | Deprecated | Retired>
-- **Last Reviewed:** YYYY-MM-DD
-- **Related Docs:** [link-1](...), [link-2](...)
-```
+Header rules:
 
-## 5) Required Sections by Document Type
+- Purpose must describe intent in one to three sentences.
+- Audience must name primary roles (for example, architects, admins, L1 support).
+- Scope must define boundaries and exclusions.
+- Related Documents must contain relative links to canonical references.
 
-## 5.1 Architecture docs
+## 5. Required Sections by Taxonomy Class
 
-Required sections:
-1. Purpose and scope
-2. System context and boundaries
-3. Design decisions and rationale (link ADRs)
-4. Data/interaction flows (text + diagram reference if available)
-5. Security/compliance considerations
-6. Operational implications
-7. Open issues / future work
+| Taxonomy Class | Required Core Sections |
+| --- | --- |
+| ADR | Context, Decision, Options Considered, Consequences, Status |
+| Architecture | Context, Logical/Physical Design, NFRs, Security/Compliance, Open Risks |
+| Process | Inputs, Workflow Steps, Roles and Responsibilities, Controls, Outputs |
+| Admin | Preconditions, Configuration Steps, Validation, Rollback, Security Notes |
+| Runbook | Trigger Conditions, Immediate Actions, Detailed Procedure, Escalation, Exit Criteria |
+| Troubleshooting | Symptoms, Diagnostics, Root Cause Patterns, Resolution Steps, Escalation |
+| Onboarding | Prerequisites, Orientation Steps, Key Systems, Role Checklist, First-Week Outcomes |
+| Release | Entry Criteria, Quality Gates, Promotion Steps, Backout Plan, Sign-off Matrix |
+| Knowledge Article | Summary, Applicable Scenarios, Steps, References, Last Verification Context |
 
-## 5.2 ADRs
+## 6. Cross-Linking Conventions
 
-Required sections:
-1. Context
-2. Decision drivers
-3. Options considered
-4. Decision
-5. Consequences (positive/negative)
-6. Status and supersession references
+- Use relative Markdown links for internal references.
+- Use descriptive link text (not "click here").
+- Every troubleshooting and knowledge article must link to one canonical runbook or architecture doc.
+- Every runbook must link to at least one escalation or governance process document.
+- Every index must be updated when documents are added, moved, or renamed.
 
-## 5.3 Process docs
+## 7. Audience and Role Definitions
 
-Required sections:
-1. Objective
-2. Trigger/events for process usage
-3. Roles and responsibilities (RACI-lite)
-4. Step-by-step workflow
-5. Artifacts/evidence produced
-6. Metrics and review cadence
+| Role | Responsibilities in Documentation |
+| --- | --- |
+| Enterprise Architect | Owns architecture and ADR quality, consistency, and decision traceability. |
+| Integration Engineer | Maintains technical implementation accuracy and reference links to code/config. |
+| Salesforce Administrator | Maintains admin guides and validates metadata procedure correctness. |
+| Support Analyst (L1/L2) | Maintains troubleshooting and knowledge article effectiveness from incidents. |
+| Release Manager | Maintains release controls, quality gates, and promotion evidence requirements. |
+| Product/Program Governance | Reviews process docs for compliance and operating model alignment. |
 
-## 5.4 Admin docs
+## 8. Role-Specific Variants
 
-Required sections:
-1. Purpose and prerequisites
-2. Configuration model
-3. Change procedure
-4. Validation checks
-5. Rollback/recovery notes
-6. Audit and approval expectations
+Where role-specific variants are needed, use these suffix conventions:
 
-## 5.5 Runbooks
+- `-architect.md`
+- `-admin.md`
+- `-support.md`
+- `-release.md`
 
-Required sections:
-1. Trigger conditions
-2. Preconditions and safety checks
-3. Procedure steps
-4. Validation of success
-5. Escalation path and severity guidance
-6. Post-action documentation requirements
+Variant rules:
 
-## 5.6 Troubleshooting / Knowledge articles
+- Keep shared canonical content in one base doc.
+- Variant docs only contain role-specific procedures or views.
+- Variant docs must link back to the base document in `Related Documents`.
 
-Required sections:
-1. Symptom
-2. Likely causes
-3. Triage steps (quick)
-4. Resolution steps
-5. When to escalate
-6. Related canonical docs
+## 9. Quality and Lifecycle Controls
 
-## 5.7 Design pattern docs
-
-Required sections:
-1. Problem statement
-2. Recommended pattern
-3. Anti-patterns to avoid
-4. Extension points
-5. Test/validation guidance
-
-## 6) Audience Definitions and Role-Specific Variants
-
-## 6.1 Core role set
-
-- **Architect**: design governance, decision quality, scalability, and compliance fit.
-- **Developer**: implementation detail, interfaces, testability.
-- **Admin**: metadata configuration and environment management.
-- **Operator/Support**: monitoring, incident response, reprocessing.
-- **Security/Compliance**: controls, data handling, audit evidence.
-- **Release manager**: promotion readiness, rollback strategy, dependencies.
-
-## 6.2 Role-specific variants
-
-For high-impact docs, provide role lenses:
-- `*-architect-view.md` (decision rationale focus)
-- `*-operator-view.md` (procedure focus)
-- `*-admin-view.md` (configuration focus)
-
-Use variants only when one doc cannot stay readable for multiple roles; otherwise keep single source with clear role subsections.
-
-## 7) Cross-Linking Conventions
-
-- Every doc must include at least 2 related-document links.
-- Use relative links for repo portability.
-- Use a “Canonical source” note when summarizing another doc.
-- Add a “Next read” section at the end of architecture and process docs.
-
-## 8) Taxonomy Rules for Existing Project Categories
-
-## 8.1 Architecture docs
-
-- Keep system-level intent and analysis in `docs/architecture/`.
-- Move or alias broad overview documents into architecture with canonical pointers.
-
-## 8.2 ADRs
-
-- Create ADRs for any decision that changes package boundaries, security posture, tenancy model, observability model, or data ownership.
-
-## 8.3 Process docs
-
-- Keep governance artifacts (ownership matrix, use-case register, working rules).
-- Add review cadence and owners to each.
-
-## 8.4 Admin docs
-
-- Keep setup and change procedures for metadata and credentials.
-- Add explicit rollback and verification sections.
-
-## 8.5 Runbooks
-
-- Keep operational procedures and response playbooks.
-- Ensure each runbook includes severity/escalation and evidence capture.
-
-## 8.6 Troubleshooting docs
-
-- Place rapid triage KAs in `docs/knowledge/`.
-- Keep them short, action-oriented, and linked to canonical runbooks.
-
-## 9) Supportability and Operational Standards
-
-All operational docs (admin + runbook + knowledge) must include:
-- explicit pre-checks,
-- objective success criteria,
-- escalation triggers,
-- post-action logging expectations,
-- and links to source-of-truth artifacts.
-
-## 10) Governance and Maintenance Model
-
-## 10.1 Review cadence
-
-- Architecture + ADR docs: quarterly minimum
-- Runbooks + admin docs: monthly verification minimum
-- Knowledge articles: after each incident pattern change
-
-## 10.2 Status lifecycle
-
-Use status values consistently:
-- `Draft`
-- `Active`
-- `Deprecated`
-- `Retired`
-
-Deprecated docs must include replacement references and retirement timeline.
-
-## 10.3 Ownership
-
-Each doc must have a named owning role/team and a backup reviewer role.
-
-## 11) Definition of Done for New/Updated Docs
-
-A documentation change is complete only if:
-1. It conforms to taxonomy and naming rules.
-2. Required header and required sections are present.
-3. Related docs are linked.
-4. Audience and operational impact are clear.
-5. Outdated overlapping docs are updated or marked deprecated.
-
-## 12) Immediate Backlog to Apply This Standard
-
-1. Add `README.md` index files in each `docs/*` subfolder.
-2. Add header metadata blocks to all existing docs.
-3. Create `docs/knowledge/` and seed top support KAs from existing runbooks.
-4. Normalize runbook templates for reprocessing, feature toggles, observability, and CI/CD operations.
-5. Reclassify or pointer-link `docs/project-context-requirements-architecture-overview.md` to avoid canonical ambiguity.
+- Review cadence: quarterly for architecture/process, monthly for runbooks/troubleshooting.
+- Each incident-triggered update must include troubleshooting or runbook improvement.
+- Outdated documents should be retained with a deprecation notice and pointer to replacement.
+- Broken links are release blockers for documentation-focused changes.

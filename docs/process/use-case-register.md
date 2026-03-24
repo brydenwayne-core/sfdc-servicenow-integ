@@ -1,5 +1,27 @@
 # Use Case Register
 
+## Purpose
+Define repeatable governance and delivery processes for the integration program.
+
+## Audience
+Delivery managers, architects, developers, admins
+
+## Scope
+Process steps, ownership models, and control points for change delivery.
+
+## Related Documents
+- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md); [Documentation Master Index](../indexes/README.md)
+
+## Operational Notes
+- Treat this document as part of the enterprise documentation system defined on 2026-03-24.
+- Escalate conflicting guidance to architecture owners before implementation changes.
+
+## Revision Considerations
+- Update links and examples whenever repository structure or package boundaries change.
+- Record substantial directional changes via ADRs and cross-link from this document.
+
+## Core Content
+
 ## Overview
 
 This register defines the current and planned business use cases for the Salesforce Case to ServiceNow Incident integration. It is intended to drive architecture, metadata design, delivery sequencing, and test coverage.

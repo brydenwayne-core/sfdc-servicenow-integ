@@ -1,5 +1,27 @@
 # sfdc-servicenow-integ
 
+## Purpose
+Provide a repository-level orientation and navigation guide for contributors and operators.
+
+## Audience
+Contributors, architects, operators, admins
+
+## Scope
+Repository structure, key workflows, and links to detailed documentation sets.
+
+## Related Documents
+- [Documentation Master Index](docs/indexes/README.md); [Architecture Index](docs/architecture/README.md)
+
+## Operational Notes
+- Treat this document as part of the enterprise documentation system defined on 2026-03-24.
+- Escalate conflicting guidance to architecture owners before implementation changes.
+
+## Revision Considerations
+- Update links and examples whenever repository structure or package boundaries change.
+- Record substantial directional changes via ADRs and cross-link from this document.
+
+## Core Content
+
 A Salesforce DX repository for building a metadata-driven, modular Apex REST integration framework that synchronizes Salesforce Cases with ServiceNow Incidents for enterprise healthcare use cases.
 
 ## Repository structure
