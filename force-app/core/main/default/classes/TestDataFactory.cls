@@ -8,6 +8,7 @@ public with sharing class TestDataFactory {
         public List<SN_Field_Mapping__mdt> fieldMappings = new List<SN_Field_Mapping__mdt>();
         public List<SN_Feature_Toggle__mdt> featureToggles = new List<SN_Feature_Toggle__mdt>();
         public List<SN_Endpoint_Config__mdt> endpointConfigs = new List<SN_Endpoint_Config__mdt>();
+        public List<SN_Incident_Template__mdt> incidentTemplates = new List<SN_Incident_Template__mdt>();
     }
 
     public static Account createAccount(Boolean doInsert) {
@@ -89,6 +90,11 @@ public with sharing class TestDataFactory {
         bundle.fieldMappings.add(fieldMapping('ORG_B_SHORT_DESCRIPTION', 'ORG_B', 'REQUEST_Y', 'Case.Subject', 'short_description', 'Lowercase', null, 1, true));
         bundle.fieldMappings.add(fieldMapping('ORG_B_REQUEST_TYPE', 'ORG_B', 'REQUEST_Y', null, 'u_request_type', 'Request Type Key', null, 2, true));
         bundle.fieldMappings.add(fieldMapping('GLOBAL_SHARED_DESCRIPTION', null, 'REQUEST_SHARED', 'Case.Description', 'description', 'Trim', null, 1, true));
+
+        bundle.incidentTemplates.add(incidentTemplate('US_HEALTHCARE_PROD', 'TEMPLATE_STANDARD', 'inquiry', 'general', '2', '2', true));
+        bundle.incidentTemplates.add(incidentTemplate('ORG_A', 'TEMPLATE_A', 'a', 'a1', '2', '2', true));
+        bundle.incidentTemplates.add(incidentTemplate('ORG_B', 'TEMPLATE_B', 'b', 'b1', '2', '2', true));
+        bundle.incidentTemplates.add(incidentTemplate(null, 'TEMPLATE_SHARED', 'shared', 'shared1', '3', '3', true));
 
         bundle.featureToggles.add(featureToggle(null, 'CASE_TO_INCIDENT_SYNC', true));
         bundle.featureToggles.add(featureToggle('ORG_A', 'CASE_TO_INCIDENT_SYNC', true));
@@ -181,7 +187,25 @@ public with sharing class TestDataFactory {
         record.Feature_Key__c = featureKey;
         record.Is_Enabled__c = enabled;
         record.Rollout_Group__c = 'TEST';
+        record.Request_Type_Key__c = null;
+        record.Is_Kill_Switch__c = false;
+        record.Depends_On_Feature__c = null;
         record.Notes__c = 'Generated for tests';
+        return record;
+    }
+
+    public static SN_Incident_Template__mdt incidentTemplate(String orgKey, String templateKey, String category, String subcategory, String impact, String urgency, Boolean isActive) {
+        SN_Incident_Template__mdt record = new SN_Incident_Template__mdt();
+        record.DeveloperName = (String.isBlank(orgKey) ? 'GLOBAL' : orgKey) + '_' + templateKey;
+        record.MasterLabel = templateKey;
+        record.Org_Key__c = orgKey;
+        record.Incident_Template_Key__c = templateKey;
+        record.Category__c = category;
+        record.Subcategory__c = subcategory;
+        record.Impact__c = impact;
+        record.Urgency__c = urgency;
+        record.Short_Description_Template__c = 'Template ' + templateKey;
+        record.Is_Active__c = isActive;
         return record;
     }
 
