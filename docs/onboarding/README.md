@@ -21,4 +21,5 @@ Onboarding guidance under `docs/onboarding`.
 
 ## Core Content
 
+- [ISS Apps Salesforce Team Onboarding Guide](iss-apps-salesforce-team-onboarding-guide.md)
 - [Project Context + Requirements + Architecture Overview](project-context-requirements-architecture-overview.md)

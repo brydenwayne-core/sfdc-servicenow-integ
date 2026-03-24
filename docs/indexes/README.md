@@ -1,7 +1,7 @@
 # Documentation Master Index
 
 ## Purpose
-Provide a role-based and category-based master map of enterprise documentation.
+Provide a role-based and operating-model-based master map of enterprise documentation.
 
 ## Audience
 All stakeholders requiring quick access to canonical project guidance.
@@ -32,8 +32,15 @@ Cross-category navigation for documentation at scale.
 - Release: [docs/release](../release/README.md)
 - Knowledge: [docs/knowledge](../knowledge/README.md)
 
-## By Role
-- Enterprise architect: [Architecture Index](../architecture/README.md), [ADR Index](../adr/README.md)
-- Salesforce admin: [Admin Index](../admin/README.md), [Release Index](../release/README.md)
-- Support analyst: [Runbooks Index](../runbooks/README.md), [Troubleshooting Index](../troubleshooting/README.md), [Knowledge Index](../knowledge/README.md)
-- New team member: [Onboarding Index](../onboarding/README.md), [Documentation Hub](../README.md)
+## Navigation Views
+- [By Audience](by-audience.md)
+- [By Architecture Lifecycle Phase](by-lifecycle-phase.md)
+- [By Function / Operational Task](by-function-operational-task.md)
+- [By Incident / Support Scenario](by-incident-support-scenario.md)
+
+## Recommended Reading Paths
+- Executives / Sponsors: [By Audience → Executives](by-audience.md#executives--program-sponsors)
+- Architects: [By Audience → Enterprise / Solution Architects](by-audience.md#enterprise--solution-architects)
+- Admins: [By Audience → Salesforce Administrators](by-audience.md#salesforce-administrators)
+- Developers: [By Audience → Salesforce Developers](by-audience.md#salesforce-developers)
+- Support Analysts: [By Audience → ISS Support Analysts](by-audience.md#iss-support-analysts)
