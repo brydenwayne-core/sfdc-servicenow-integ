@@ -1,13 +1,10 @@
 # Architecture Index
 
 ## Purpose
-Index all architecture reference documents and analysis artifacts.
+Index architecture documents that describe the implemented Salesforce–ServiceNow integration solution and its governance controls.
 
 ## Audience
-Architects, senior engineers, security reviewers, release leadership.
-
-## Scope
-All documents in `docs/architecture`.
+Enterprise architects, security reviewers, platform engineers, release governance, support leadership.
 
 ## Core Architecture Set
 
@@ -20,7 +17,7 @@ All documents in `docs/architecture`.
 - [Deployment Architecture](deployment-architecture.md)
 - [Package Modularity Overview](package-modularity-overview.md)
 
-## Supporting Architecture Analyses
+## Supporting Analyses
 
 - [Access Model](access-model.md)
 - [Documentation Audit](documentation-audit.md)
@@ -38,6 +35,6 @@ All documents in `docs/architecture`.
 ## Related Documents
 
 - [ADR Index](../adr/README.md)
-- [Documentation Hub](../README.md)
-- [Runbooks Index](../runbooks/README.md)
 - [Process Index](../process/README.md)
+- [Runbooks Index](../runbooks/README.md)
+- [Documentation Hub](../README.md)

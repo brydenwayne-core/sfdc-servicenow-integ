@@ -1,43 +1,51 @@
 # Logical Architecture
 
 ## Purpose
-Describe the logical processing flow and capability layers implemented in the repository.
+Describe the end-to-end logical flow, capability layers, and control points used by the implemented integration.
 
 ## Capability Layers
 
-1. **Intake and orchestration layer**
+1. **Intake orchestration layer**
    - `SN_CaseIntakeController`, `SN_CaseIntakeSupport`, `SN_IntegrationOrchestrator`, `SN_IncidentOrchestrationService`.
-2. **Configuration and policy layer**
+2. **Configuration/policy layer**
    - `SN_ConfigService`, `SN_MetadataConfigService`, `SN_FeatureToggleService`, `SN_ConfigValidationService`.
-3. **Transformation and routing layer**
-   - `SN_FieldMappingService`, `SN_IncidentPayloadBuilder`, `SN_RoutingService`, `SN_RequestRouter`.
-4. **Transport and external API layer**
+3. **Transformation/routing layer**
+   - `SN_FieldMappingService`, `SN_IncidentPayloadBuilder`, `SN_RoutingService`, `SN_RequestRouter`, `SN_PayloadValidationService`.
+4. **Transport layer**
    - `SN_ServiceNowClient`, `SN_RequestBuilder`, `SN_ResponseHandler`, `SN_NamedCredentialResolver`.
-5. **Reliability and lifecycle layer**
-   - `SN_IdempotencyService`, retry/replay queueables/services, exception taxonomy.
-6. **Observability and support layer**
-   - `SN_TransactionLogService`, runtime transaction/error/link/run objects, admin artifacts.
+5. **Reliability layer**
+   - `SN_IdempotencyService`, `SN_TransactionRetryQueueable`, `SN_TransactionReplayService`, sync queueables.
+6. **Observability layer**
+   - `SN_TransactionLogService`, transaction/error/run/link objects.
 
-## End-to-End Flow (Nominal)
+## Nominal Flow
 
-1. Case context is evaluated for eligible request type.
-2. Metadata bundle is resolved for org/request/routing/mapping/toggles.
-3. Payload is built and validated.
-4. ServiceNow callout executes through named credential-backed endpoint.
-5. Response is interpreted, link/transaction state is updated, and errors are categorized.
-6. Retry/replay lifecycle proceeds for eligible failures.
+1. Intake logic identifies request intent from Case context.
+2. Metadata bundle is resolved by org/request key.
+3. Payload mapping, template merge, and routing resolution occur.
+4. Callout executes via Named Credential.
+5. Response classification updates link and transaction telemetry.
+6. Retry/replay path is activated for eligible failures.
 
-## Non-Functional Design Intent
+## Control Points
 
-- **Scalability:** org variability modeled through metadata, not code forks.
-- **Governance:** explicit separation between runtime logic and admin-owned config.
-- **Supportability:** deterministic status/error categorization and replay controls.
-- **Security:** no embedded secrets, minimized log payloads.
+- **Feature toggles:** request/org/global enablement and kill switch behavior.
+- **Idempotency:** duplicate prevention for replay/retry and concurrent triggers.
+- **Failure taxonomy:** classifies errors for operator decision trees.
+- **Lifecycle state:** enables measurable queue health and backlog review.
+
+## Enterprise Quality Attributes
+
+- **Reusability:** metadata variation over code branching.
+- **Operability:** deterministic support telemetry and replay mechanisms.
+- **Security:** no embedded secrets; controlled callout endpoints.
+- **Governability:** package boundaries + lifecycle-aware metadata.
 
 ## Cross-links
 
-- [ADR-001](../adr/ADR-001-servicenow-salesforce-integration.md)
+- [System Context](system-context.md)
 - [Component Model](component-model.md)
 - [Metadata Architecture](metadata-architecture.md)
 - [Observability Architecture](observability-architecture.md)
-- [Test Architecture](test-architecture.md)
+- [Incident Update to Case Sync Flow](../process/incident-update-to-case-sync.md)
+- [Metadata-Driven Routing Flow](../process/metadata-driven-routing.md)

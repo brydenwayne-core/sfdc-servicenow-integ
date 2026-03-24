@@ -1,26 +1,32 @@
 # Process Index
 
 ## Purpose
-Provide navigation for governance and process-oriented documentation.
+Provide enterprise-reviewable process documentation for business, technical, exception, and operational flows.
 
 ## Audience
-Delivery leads, engineers, architects, and program governance stakeholders.
+Delivery leads, operations teams, architects, release governance, security reviewers.
 
 ## Scope
-All process documents in `docs/process`.
+All process artifacts under `docs/process`.
+
+## Core Process Flows
+
+- [Case Intake to Incident Creation](case-intake-to-incident-creation.md)
+- [Incident Update to Case Sync](incident-update-to-case-sync.md)
+- [Metadata-Driven Routing](metadata-driven-routing.md)
+- [Failure Classification and Triage](failure-classification-and-triage.md)
+- [Replay and Reprocessing](replay-and-reprocessing.md)
+- [New Org Onboarding](new-org-onboarding.md)
+
+## Supporting Process References
+
+- [Use Case Register](use-case-register.md)
+- [Field Ownership Matrix](field-ownership-matrix.md)
+- [Codex Working Rules](codex-working-rules.md)
 
 ## Related Documents
-- [Documentation Taxonomy Standard](../architecture/documentation-taxonomy-standard.md)
-- [Documentation Hub](../README.md)
 
-## Operational Notes
-- Process updates should include owner and rollout communication.
-
-## Revision Considerations
-- Review quarterly for SDLC and governance drift.
-
-## Core Content
-
-- [Codex Working Rules](codex-working-rules.md)
-- [Field Ownership Matrix](field-ownership-matrix.md)
-- [Use Case Register](use-case-register.md)
+- [Architecture Index](../architecture/README.md)
+- [ADR Index](../adr/README.md)
+- [Runbooks Index](../runbooks/README.md)
+- [Admin Guide](../admin/configuring-salesforce-servicenow-integration.md)

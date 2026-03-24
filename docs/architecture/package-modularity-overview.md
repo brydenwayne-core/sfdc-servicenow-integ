@@ -1,38 +1,40 @@
 # Package Modularity Overview
 
 ## Purpose
-Provide an architecture-level view of package boundaries and dependency intent.
+Describe package boundaries, dependency direction, and change-governance implications.
 
-## Boundary Principles
+## Package Boundaries
 
-- Runtime logic and runtime objects are isolated in `force-app/core`.
-- Metadata schema and secure endpoint definitions are isolated in `force-app/config`.
-- Admin UX and permissioning assets are isolated in `force-app/admin`.
-- Example reference records are isolated in `force-app/sample-config`.
+- **`force-app/config`**: integration metadata schema and credential definitions.
+- **`force-app/core`**: runtime orchestration logic and observability objects.
+- **`force-app/admin`**: admin app, tabs, flexipages, layouts, permission sets.
+- **`force-app/sample-config`**: reference metadata used for onboarding examples.
 
 ## Dependency Direction
 
 - `config` is foundational.
 - `core` depends on `config`.
 - `admin` depends on `config` + `core`.
-- `sample-config` depends on `config` and remains optional for production.
+- `sample-config` depends on `config` and is optional for production runtime.
 
-## Why This Matters
+## Boundary Rationale
 
-- Supports reusable productization across many orgs.
-- Reduces coupling between runtime execution and support UX evolution.
-- Enables controlled governance for schema vs implementation-specific records.
-- Improves release predictability through explicit install order.
+- Isolates enterprise-governed schema from runtime implementation changes.
+- Supports independent evolution of support UX and permissions.
+- Prevents sample data from contaminating production-grade packages.
+- Improves release predictability and rollback planning.
 
-## Anti-Patterns to Avoid
+## Governance Rules
 
-- Placing org-specific sample records in runtime/config packages.
-- Making runtime behavior depend on admin-only artifacts.
-- Introducing package cycles through metadata placement drift.
+1. No runtime dependency on sample-config artifacts.
+2. No org-specific records in base config/runtime packages.
+3. Any dependency direction change requires architecture review and ADR update.
+4. Promotion evidence must include package impact statement.
 
 ## Cross-links
 
 - [ADR-001](../adr/ADR-001-servicenow-salesforce-integration.md)
-- [Package Boundaries (detailed)](package-boundaries.md)
 - [Deployment Architecture](deployment-architecture.md)
-- [Repository Structure](repository-structure.md)
+- [Package Boundaries (detailed)](package-boundaries.md)
+- [Metadata Architecture](metadata-architecture.md)
+- [Use Case Register](../process/use-case-register.md)
