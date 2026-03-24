@@ -41,6 +41,14 @@ public with sharing class SN_IntegrationOrchestrator {
     public interface IFieldMappingGateway { Map<String, Object> buildPayload(String orgKey, String requestTypeKey, Case caseRecord, Map<String, Object> relatedData); }
     public interface IRoutingGateway { SN_RoutingService.RoutingOutcome resolve(SN_RoutingService.RoutingContext context); }
     public interface IServiceNowGateway { SN_ServiceNowClient.ResponseEnvelope createIncident(SN_ServiceNowClient.IncidentCreateRequest request); }
+    public interface ITransactionLogger {
+        void markInProgress(Id transactionId, String stageName);
+        void markSuccess(Id transactionId, String targetRecordId, String safeSummary);
+        void markFailure(Id transactionId, String category, String failureClass, String errorCode, String errorMessage, Boolean retryable, String safeSummary);
+    }
+    public interface IPayloadValidator {
+        SN_PayloadValidationService.ValidationResult validateIncidentCreate(String orgKey, String requestTypeKey, Map<String, Object> payload);
+    }
 
     @TestVisible private static ICaseRepository caseRepository = new DefaultCaseRepository();
     @TestVisible private static IFeatureToggleGateway featureToggleGateway = new DefaultFeatureToggleGateway();
@@ -48,6 +56,8 @@ public with sharing class SN_IntegrationOrchestrator {
     @TestVisible private static IFieldMappingGateway fieldMappingGateway = new DefaultFieldMappingGateway();
     @TestVisible private static IRoutingGateway routingGateway = new DefaultRoutingGateway();
     @TestVisible private static IServiceNowGateway serviceNowGateway = new DefaultServiceNowGateway();
+    @TestVisible private static ITransactionLogger transactionLogger = new DefaultTransactionLogger();
+    @TestVisible private static IPayloadValidator payloadValidator = new DefaultPayloadValidator();
 
     public static Id submitCase(Id caseId, String requestTypeKey) {
         RequestContext context = new RequestContext();
@@ -157,6 +167,8 @@ public with sharing class SN_IntegrationOrchestrator {
         fieldMappingGateway = new DefaultFieldMappingGateway();
         routingGateway = new DefaultRoutingGateway();
         serviceNowGateway = new DefaultServiceNowGateway();
+        transactionLogger = new DefaultTransactionLogger();
+        payloadValidator = new DefaultPayloadValidator();
     }
 
     private static OrchestrationResult executeIncident(Case caseRecord, RequestContext context,
@@ -172,7 +184,7 @@ public with sharing class SN_IntegrationOrchestrator {
             return result;
         }
 
-        SN_TransactionLogService.markInProgress(reservation.transactionId, 'Routing');
+        transactionLogger.markInProgress(reservation.transactionId, 'Routing');
 
         try {
             SN_RoutingService.RoutingContext routingContext = new SN_RoutingService.RoutingContext();
@@ -187,6 +199,23 @@ public with sharing class SN_IntegrationOrchestrator {
                 payload.put('assignment_group', routingOutcome.assignmentTarget.externalAssignmentId);
             }
             payload.put('u_salesforce_case_id', caseRecord.Id);
+            SN_PayloadValidationService.ValidationResult validationResult = payloadValidator.validateIncidentCreate(
+                context.orgKey,
+                requestType.requestTypeKey,
+                payload
+            );
+            if (validationResult.valid != true) {
+                transactionLogger.markFailure(
+                    reservation.transactionId,
+                    'Validation',
+                    'PreTransportValidation',
+                    validationResult.code,
+                    validationResult.message,
+                    false,
+                    validationResult.safeSummary
+                );
+                throw new OrchestrationException(validationResult.message);
+            }
 
             SN_ServiceNowClient.IncidentCreateRequest request = new SN_ServiceNowClient.IncidentCreateRequest();
             request.orgKey = context.orgKey;
@@ -198,7 +227,7 @@ public with sharing class SN_IntegrationOrchestrator {
             if (response.success == true) {
                 Map<String, String> incidentReference = extractIncidentReference(response.responseBody);
                 String targetRecordId = incidentReference.get('sys_id');
-                SN_TransactionLogService.markSuccess(reservation.transactionId, targetRecordId, response.safeSummary);
+                transactionLogger.markSuccess(reservation.transactionId, targetRecordId, response.safeSummary);
                 SN_IncidentLinkService.upsertLink(
                     SN_IncidentLinkService.buildCaseIncidentContext(
                         reservation.transactionId,
@@ -215,7 +244,7 @@ public with sharing class SN_IntegrationOrchestrator {
                 return result;
             }
 
-            SN_TransactionLogService.markFailure(
+            transactionLogger.markFailure(
                 reservation.transactionId,
                 mapFailureCategory(response.failureCategory),
                 response.failureCategory == null ? 'Unknown' : String.valueOf(response.failureCategory),
@@ -240,7 +269,7 @@ public with sharing class SN_IntegrationOrchestrator {
         } catch (Exception ex) {
             if (ex instanceof SN_ExceptionTaxonomy.IntegrationException) {
                 SN_ExceptionTaxonomy.IntegrationException typed = (SN_ExceptionTaxonomy.IntegrationException) ex;
-                SN_TransactionLogService.markFailure(
+                transactionLogger.markFailure(
                     reservation.transactionId,
                     SN_ExceptionTaxonomy.toErrorCategory(typed.category),
                     SN_ExceptionTaxonomy.toFailureClass(typed.category),
@@ -250,7 +279,7 @@ public with sharing class SN_IntegrationOrchestrator {
                     'orchestrationException'
                 );
             } else if (!(ex instanceof OrchestrationException)) {
-                SN_TransactionLogService.markFailure(
+                transactionLogger.markFailure(
                     reservation.transactionId,
                     'Unknown',
                     'Unknown',
@@ -338,6 +367,9 @@ public with sharing class SN_IntegrationOrchestrator {
         if (failureCategory == SN_ServiceNowClient.FailureCategory.TECHNICAL) {
             return 'Transport';
         }
+        if (failureCategory == SN_ServiceNowClient.FailureCategory.PRE_TRANSPORT_VALIDATION) {
+            return 'Validation';
+        }
         return 'Unknown';
     }
 
@@ -382,6 +414,24 @@ public with sharing class SN_IntegrationOrchestrator {
     private class DefaultServiceNowGateway implements IServiceNowGateway {
         public SN_ServiceNowClient.ResponseEnvelope createIncident(SN_ServiceNowClient.IncidentCreateRequest request) {
             return SN_ServiceNowClient.createIncidentWithHandling(request);
+        }
+    }
+
+    private class DefaultTransactionLogger implements ITransactionLogger {
+        public void markInProgress(Id transactionId, String stageName) {
+            SN_TransactionLogService.markInProgress(transactionId, stageName);
+        }
+        public void markSuccess(Id transactionId, String targetRecordId, String safeSummary) {
+            SN_TransactionLogService.markSuccess(transactionId, targetRecordId, safeSummary);
+        }
+        public void markFailure(Id transactionId, String category, String failureClass, String errorCode, String errorMessage, Boolean retryable, String safeSummary) {
+            SN_TransactionLogService.markFailure(transactionId, category, failureClass, errorCode, errorMessage, retryable, safeSummary);
+        }
+    }
+
+    private class DefaultPayloadValidator implements IPayloadValidator {
+        public SN_PayloadValidationService.ValidationResult validateIncidentCreate(String orgKey, String requestTypeKey, Map<String, Object> payload) {
+            return SN_PayloadValidationService.validateIncidentCreate(orgKey, requestTypeKey, payload);
         }
     }
 

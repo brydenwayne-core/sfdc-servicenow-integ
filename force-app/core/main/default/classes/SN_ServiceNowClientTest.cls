@@ -63,4 +63,20 @@ private class SN_ServiceNowClientTest {
             System.assertEquals(true, ex.retryable);
         }
     }
+
+    @IsTest
+    static void rejectsPreTransportValidationErrors() {
+        SN_ServiceNowClient.IncidentCreateRequest invalidRequest = new SN_ServiceNowClient.IncidentCreateRequest();
+        invalidRequest.orgKey = null;
+        invalidRequest.correlationId = 'corr-missing-org';
+        invalidRequest.payload = new Map<String, Object>{ 'short_description' => 'safe' };
+
+        try {
+            SN_ServiceNowClient.createIncidentWithHandling(invalidRequest);
+            System.assert(false, 'Expected pre-transport validation exception');
+        } catch (SN_ServiceNowClient.ServiceNowClientException ex) {
+            System.assertEquals(SN_ServiceNowClient.FailureCategory.PRE_TRANSPORT_VALIDATION, ex.failureCategory);
+            System.assertEquals('ORG_KEY_REQUIRED', ex.errorCode);
+        }
+    }
 }
