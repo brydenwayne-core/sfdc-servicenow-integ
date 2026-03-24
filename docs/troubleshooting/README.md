@@ -22,3 +22,7 @@ Troubleshooting guides in `docs/troubleshooting`.
 ## Core Content
 
 - [Incident Sync Failure Patterns](incident-sync-failure-patterns.md)
+- [Error Code Catalog](error-code-catalog.md)
+- [Failure Category Reference](failure-category-reference.md)
+- [Troubleshooting Decision Tree](troubleshooting-decision-tree.md)
+- [Escalation Guidance by Issue Type](escalation-guidance-by-issue-type.md)
