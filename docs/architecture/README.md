@@ -9,17 +9,18 @@ Architects, senior engineers, security reviewers, release leadership.
 ## Scope
 All documents in `docs/architecture`.
 
-## Related Documents
-- [Documentation Taxonomy Standard](documentation-taxonomy-standard.md)
-- [Documentation Hub](../README.md)
+## Core Architecture Set
 
-## Operational Notes
-- Architecture docs should link to relevant ADRs when decisions are finalized.
+- [System Context](system-context.md)
+- [Logical Architecture](logical-architecture.md)
+- [Component Model](component-model.md)
+- [Metadata Architecture](metadata-architecture.md)
+- [Security Architecture](security-architecture.md)
+- [Observability Architecture](observability-architecture.md)
+- [Deployment Architecture](deployment-architecture.md)
+- [Package Modularity Overview](package-modularity-overview.md)
 
-## Revision Considerations
-- Revalidate non-functional analyses after major platform or package changes.
-
-## Core Content
+## Supporting Architecture Analyses
 
 - [Access Model](access-model.md)
 - [Documentation Audit](documentation-audit.md)
@@ -33,3 +34,10 @@ All documents in `docs/architecture`.
 - [Salesforce Intake Pattern](salesforce-intake-pattern.md)
 - [Security Compliance Review](security-compliance-review.md)
 - [Test Architecture](test-architecture.md)
+
+## Related Documents
+
+- [ADR Index](../adr/README.md)
+- [Documentation Hub](../README.md)
+- [Runbooks Index](../runbooks/README.md)
+- [Process Index](../process/README.md)
