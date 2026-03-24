@@ -23,3 +23,4 @@ Knowledge articles in `docs/knowledge`, segmented by platform.
 
 - [Salesforce Knowledge Articles](salesforce/README.md)
 - [ServiceNow Knowledge Articles](servicenow/README.md)
+- [Knowledge Traceability Matrix](knowledge-traceability-matrix.md)
